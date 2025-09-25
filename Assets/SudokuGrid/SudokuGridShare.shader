@@ -7,6 +7,7 @@ Shader "Custom/SudokuGridShare"
 
         _MainLineThickness("Main Thickness", float) = 3
         _SecondaryThickness("Secondary Thickness", float) = 1
+        _ScalingFactor("Scaling Factor", float) = 1000
 
         _BackgroundColor("Background Color", Color) = (1, 1, 1, 1)
     }
@@ -52,6 +53,7 @@ Shader "Custom/SudokuGridShare"
                 half4 _BackgroundColor;
                 float _MainLineThickness;
                 float _SecondaryThickness;
+                float _ScalingFactor;
             CBUFFER_END
 
             bool IsInRange(float value, float minVal, float maxVal)
@@ -70,33 +72,32 @@ Shader "Custom/SudokuGridShare"
             half4 frag(Varyings IN) : SV_Target
             {
                 float2 uv = IN.uv;
-                float mainThickness = _MainLineThickness / 100.0;
-                float secThickness = _SecondaryThickness / 100.0;    
 
-                if (uv.x < mainThickness || uv.y < mainThickness || uv.x > 1 - mainThickness ||uv.y > 1 - mainThickness) {
-                    return _BaseColor;
-                }
+                float bigThickness = _MainLineThickness / _ScalingFactor;
+                float bigCellSize = (1 - 4 * bigThickness) / 3.0;
 
-                float primary_area = 1 - mainThickness * 2;
-                float cell_area = (1 - 4 * mainThickness) / 3;
-
-                for (int i = 1; i < 3; i++)
+                for (int i = 0; i < 4; i++)
                 {
-                    if(IsInRange(uv.x, i * primary_area / 3 + mainThickness / 2, i * primary_area / 3 + 3 * mainThickness / 2) ||
-                        IsInRange(uv.y, i * primary_area / 3 + mainThickness / 2, i * primary_area / 3 + 3 * mainThickness / 2))
+                    float halfthick = bigThickness / 2.0;
+                    float lineCenter = i * (bigCellSize + bigThickness) + halfthick;
+                    if (IsInRange(uv.x, lineCenter - halfthick, lineCenter + halfthick) || IsInRange(uv.y, lineCenter - halfthick, lineCenter + halfthick))
                     {
                         return _BaseColor;
                     }
                 }
 
+                float smallThickness = _SecondaryThickness / _ScalingFactor;
+                float halfthick = smallThickness / 2.0;
+                float smallCellSize = (bigCellSize - 2 * smallThickness) / 3.0;
+
                 for (int i = 0; i < 3; i++)
                 {
-                    float current_cell_start = mainThickness + i * (cell_area + mainThickness);
-                    
-                    for (int j = 1; j < 3; j++)
+                    float startPoint = bigThickness + i * (bigCellSize + bigThickness);
+
+                    for (int j = 0; j < 3; j++)
                     {
-                        float line_center = current_cell_start + j * (cell_area / 3);
-                        if (IsInRange(uv.x, line_center - secThickness, line_center + secThickness) || IsInRange(uv.y, line_center - secThickness, line_center + secThickness))
+                        float lineCenter = startPoint + (j + 1) * (smallCellSize + halfthick) + j * halfthick;
+                        if (IsInRange(uv.x, lineCenter - halfthick, lineCenter + halfthick) || IsInRange(uv.y, lineCenter - halfthick, lineCenter + halfthick))
                         {
                             return _BaseColor;
                         }
