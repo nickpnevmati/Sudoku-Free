@@ -129,6 +129,7 @@ GameObject:
   m_Component:
   - component: {fileID: 179452069}
   - component: {fileID: 179452068}
+  - component: {fileID: 179452070}
   m_Layer: 0
   m_Name: SudokuGrid
   m_TagString: Untagged
@@ -209,6 +210,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &179452070
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 179452067}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48c0e4de70f66496b8e76039348c561a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SudokuGridCustomizer
+  gridMaterial: {fileID: 2100000, guid: 9ccbd47e95f01a2f59ea959439525b8c, type: 2}
+  vector2Data: []
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0

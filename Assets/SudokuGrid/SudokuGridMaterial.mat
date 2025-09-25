@@ -53,9 +53,10 @@ Material:
     - _SecondaryThickness: 3
     - _ZWrite: 0
     m_Colors:
-    - _BackgroundColor: {r: 0, g: 0.56962013, b: 1, a: 0.39215687}
+    - _BackgroundColor: {r: 0, g: 0.56862736, b: 1, a: 0.39215687}
     - _BaseColor: {r: 0, g: 0, b: 0, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _HighlightColor: {r: 0.779245, g: 0.10944462, b: 0, a: 1}
     - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

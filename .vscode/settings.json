@@ -62,8 +62,7 @@
         "Packages": true,
         "Assets/Editor": true,
         "Assets/Sprites": true,
-        "Assets/Input*": true,
-        "*.sln": true
+        "Assets/Input*": true
     },
     "files.associations": {
         "*.asset": "yaml",

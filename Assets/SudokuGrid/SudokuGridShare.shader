@@ -10,6 +10,7 @@ Shader "Custom/SudokuGridShare"
         _ScalingFactor("Scaling Factor", float) = 1000
 
         _BackgroundColor("Background Color", Color) = (1, 1, 1, 1)
+        _HighlightColor("Highlight Color", Color) = (1, 1, 1, 1)
     }
 
     SubShader
@@ -31,6 +32,9 @@ Shader "Custom/SudokuGridShare"
             #pragma fragment frag
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            
+            #define CELL_COUNT 81
+            float _HighlightedCells[CELL_COUNT];
 
             struct Attributes
             {
@@ -51,6 +55,7 @@ Shader "Custom/SudokuGridShare"
                 half4 _BaseColor;
                 float4 _BaseMap_ST;
                 half4 _BackgroundColor;
+                half4 _HighlightColor;
                 float _MainLineThickness;
                 float _SecondaryThickness;
                 float _ScalingFactor;
@@ -76,7 +81,7 @@ Shader "Custom/SudokuGridShare"
                 float bigThickness = _MainLineThickness / _ScalingFactor;
                 float bigCellSize = (1 - 4 * bigThickness) / 3.0;
 
-                for (int i = 0; i < 4; i++)
+                for (int i = 0; i < 4; i++) // This is redundant
                 {
                     float halfthick = bigThickness / 2.0;
                     float lineCenter = i * (bigCellSize + bigThickness) + halfthick;
@@ -101,6 +106,33 @@ Shader "Custom/SudokuGridShare"
                         {
                             return _BaseColor;
                         }
+                    }
+                }
+
+                
+                float y_inv = 1 - uv.y;
+                for (int i = 0; i < CELL_COUNT; i++)
+                {
+                    if (_HighlightedCells[i] == 0) {
+                        continue;
+                    }
+                    
+                    int row = i / 9;
+                    int cellY = row % 3;                   
+                    int groupRow = row / 3;
+                    float groupY = groupRow * (bigCellSize + bigThickness) + bigThickness;
+                    float startY = groupY + cellY * (smallCellSize + smallThickness);
+                    float endY = startY + smallCellSize + smallThickness;
+                    
+                    int col = i % 9;
+                    int cellX = col % 3;
+                    int groupCol = col / 3;
+                    float groupX = groupCol * (bigCellSize + bigThickness) + bigThickness;
+                    float startX = groupX + cellX * (smallCellSize + smallThickness);
+                    float endX = startX + smallCellSize + smallThickness;
+
+                    if (IsInRange(uv.x, startX, endX) && IsInRange(y_inv, startY, endY)) {
+                        return _HighlightColor;
                     }
                 }
 
