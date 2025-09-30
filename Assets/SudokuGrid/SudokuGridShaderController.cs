@@ -2,30 +2,29 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class SudokuGridCustomizer : MonoBehaviour
+public class SudokuGridShaderController : MonoBehaviour
 {
     [SerializeField] Material gridMaterial;
-    [SerializeField] private float[] vector2Data = null;
+
+    float[] highlighedCells = null;
 
     private const int ARRAY_SIZE = 81; // This MUST match the shader
 
-    private int highlighedCell = 0;
-
     void Start()
     {
-        vector2Data = new float[ARRAY_SIZE];
+        highlighedCells = new float[ARRAY_SIZE];
         UpdateShaderArray();
     }
 
     public void HighlightCell(int index)
     {
-        vector2Data[index] = 1;
+        highlighedCells[index] = 1;
         UpdateShaderArray();
     }
 
     public void ClearHighlighting()
     {
-        vector2Data = new float[ARRAY_SIZE];
+        highlighedCells = new float[ARRAY_SIZE];
         UpdateShaderArray();
     }
 
@@ -35,7 +34,12 @@ public class SudokuGridCustomizer : MonoBehaviour
 
         for (int i = 0; i < ARRAY_SIZE; i++)
         {
-            gridMaterial.SetFloatArray("_HighlightedCells", vector2Data);
+            gridMaterial.SetFloatArray("_HighlightedCells", highlighedCells);
         }
+    }
+
+    private void OnDestroy()
+    {
+        ClearHighlighting();
     }
 }

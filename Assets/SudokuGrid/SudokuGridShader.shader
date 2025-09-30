@@ -1,4 +1,4 @@
-Shader "Custom/SudokuGridShare"
+Shader "Custom/SudokuGridShader"
 {
     Properties
     {
