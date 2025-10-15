@@ -21,18 +21,6 @@ public class GameLogicController : MonoBehaviour
     private PuzzleLoader puzzleLoader;
     private string solution;
 
-    int?[] sampleSudoku = new int?[] { // Temp
-        9, 5, null, 1, null, null, 8, 4, null,
-        4, 2, 3, 6, null, null, 9, null, null,
-        null, null, null, 9, null, null, null, 2, null,
-        null, 9, null, 3, null, null, 4, null, null,
-        6, null, null, 8, null, 5, 3, null, 9,
-        null, 8, 1, null, 4, 9, null, null, null, 
-        5, null, 9, 4, null, 6, null, null, null, 
-        null, null, 8, null, 2, 3, null, null, 4,
-        null, null, null, null, null, null, 1, 3, null
-    };
-
     private void Awake()
     {
         gridController.onCellClicked += HandleCellClicked;
