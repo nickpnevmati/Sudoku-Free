@@ -18,6 +18,9 @@ public class GameLogicController : MonoBehaviour
 
     private Stack<(int, int?, List<int>)> history = new Stack<(int, int?, List<int>)>();
 
+    private PuzzleLoader puzzleLoader;
+    private string solution;
+
     int?[] sampleSudoku = new int?[] { // Temp
         9, 5, null, 1, null, null, 8, 4, null,
         4, 2, 3, 6, null, null, 9, null, null,
@@ -30,8 +33,6 @@ public class GameLogicController : MonoBehaviour
         null, null, null, null, null, null, 1, 3, null
     };
 
-    int[] solution = new int[81]; // temp
-
     private void Awake()
     {
         gridController.onCellClicked += HandleCellClicked;
@@ -43,7 +44,11 @@ public class GameLogicController : MonoBehaviour
 
     private void Start()
     {
-        gridController.ConstructPuzzle(sampleSudoku);
+        puzzleLoader = new PuzzleLoader();
+        int randomIndex = Mathf.FloorToInt(Random.Range(0, 100));
+        (string puzzle, string solution) = puzzleLoader.LoadPuzzle(randomIndex);
+        gridController.ConstructPuzzle(puzzle);
+        this.solution = solution;
     }
 
     private void SetFastMode(bool value)

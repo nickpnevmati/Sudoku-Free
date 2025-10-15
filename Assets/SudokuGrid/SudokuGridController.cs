@@ -30,11 +30,12 @@ public class SudokuGridController : MonoBehaviour
         _onCellClicked += onCellClicked.Invoke;
     }
 
-    public void ConstructPuzzle(int?[] puzzle)
+    public void ConstructPuzzle(string puzzle)
     {
         for (int i = 0; i < puzzle.Length; i++)
         {
-            cells[i].number = puzzle[i];
+            int? number = puzzle[i] != '0' ? int.Parse(puzzle[i].ToString()) : null;
+            cells[i].number = number;
         }
     }
 
