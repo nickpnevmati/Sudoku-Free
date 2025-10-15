@@ -73,6 +73,58 @@ public class SudokuGridController : MonoBehaviour
         ClearNoteHighlights();
     }
 
+    public void QuickNote(bool set)
+    {
+        if (!set)
+        {
+            for (int i = 0; i < cells.Length; i++)
+            {
+                ClearNoteHighlights();
+                cells[i].ClearNotes();
+            }
+            return;
+        }
+
+        for (int idx = 0; idx < cells.Length; idx++)
+        {
+            if (cells[idx].number != null) continue;
+
+            for (int num = 1; num <= 9; num++)
+            {
+                int col = idx % 9;
+                int row = idx / 9;
+
+                bool found = false;
+
+                for (int k = 0; k < 9; k++)
+                {
+                    if (cells[col + k * 9].number == num || cells[row * 9 + k].number == num)
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+
+                int groupCol = col - col % 3;
+                int groupRow = row - row % 3;
+                for (int k = 0; k < 3; k++)
+                {
+                    for (int l = 0; l < 3; l++)
+                    {
+                        if (cells[(groupRow + k) * 9 + groupCol + l].number == num)
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+
+
+                if (!found) cells[idx].AddNote(num);
+            }
+        }
+    }
+
     private void HandleCellClicked(int index)
     {
         shaderController.ClearHighlighting();

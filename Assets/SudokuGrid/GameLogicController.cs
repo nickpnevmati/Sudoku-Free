@@ -9,6 +9,7 @@ public class GameLogicController : MonoBehaviour
     [SerializeField] Toggle fastModeButton;
     [SerializeField] Toggle noteToggle;
     [SerializeField] Button undoButton;
+    [SerializeField] Toggle quickNoteToggle;
 
     private bool fastMode;
     private bool noteMode;
@@ -28,6 +29,7 @@ public class GameLogicController : MonoBehaviour
         fastModeButton.onValueChanged.AddListener(SetFastMode);
         noteToggle.onValueChanged.AddListener(value => noteMode = value);
         undoButton.onClick.AddListener(Undo);
+        quickNoteToggle.onValueChanged.AddListener(SetQuickNote);
     }
 
     private void Start()
@@ -48,6 +50,21 @@ public class GameLogicController : MonoBehaviour
         numpad.SetModeToggle(fastMode);
     }
 
+    private void SetQuickNote(bool value)
+    {
+        gridController.QuickNote(value);
+
+        // fuck this if statement in particular
+        if (value)
+        {
+            if (selectedNumber != null)
+                gridController.HighlightNumber((int)selectedNumber);
+
+            if (selectedCell != null && gridController.GetCellData((int)selectedCell).Item2 != null)
+                gridController.HighlightNumber((int)gridController.GetCellData((int)selectedCell).Item2);
+        }
+    }
+
     private void HandleNumpadClicked(int? number)
     {
         if (number == null) return;
@@ -55,7 +72,7 @@ public class GameLogicController : MonoBehaviour
         if (fastMode)
         {
             selectedNumber = number;
-            gridController.HighlightNumber((int) number);
+            gridController.HighlightNumber((int)number);
             return;
         }
 
@@ -88,7 +105,7 @@ public class GameLogicController : MonoBehaviour
 
         history.Push(cellData);
         gridController.PaintCell(cellIndex, (int)selectedNumber, noteMode);
-        gridController.HighlightNumber((int) selectedNumber);
+        gridController.HighlightNumber((int)selectedNumber);
 
         if (!IsCorrect(cellIndex, (int)selectedNumber))
         {
