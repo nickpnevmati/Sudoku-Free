@@ -19,7 +19,6 @@ public class GameLogicController : MonoBehaviour
 
     private Stack<(int, int?, List<int>)> history = new Stack<(int, int?, List<int>)>();
 
-    private PuzzleLoader puzzleLoader;
     private string solution;
 
     private void Awake()
@@ -34,9 +33,7 @@ public class GameLogicController : MonoBehaviour
 
     private void Start()
     {
-        puzzleLoader = new PuzzleLoader();
-        int randomIndex = Mathf.FloorToInt(Random.Range(0, 100));
-        (string puzzle, string solution) = puzzleLoader.LoadPuzzle(randomIndex);
+        (string puzzle, string solution) = GameManager.instance.GetPuzzle();
         gridController.ConstructPuzzle(puzzle);
         this.solution = solution;
     }

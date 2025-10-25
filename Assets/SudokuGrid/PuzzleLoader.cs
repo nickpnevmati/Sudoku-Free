@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 using Unity.Android.Gradle.Manifest;
 using UnityEditor.UI;
@@ -25,6 +26,11 @@ public class PuzzleLoader
         string puzzle = puzzleString.Substring(0, 81);
         string solution = puzzleString.Substring(81, 81);
         return (puzzle, solution);
+    }
+
+    public (string, string) LoadPuzzle(string puzzle)
+    {
+        throw new NotImplementedException();
     }
     
 }
