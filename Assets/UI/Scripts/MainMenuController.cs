@@ -1,3 +1,4 @@
+using System.ComponentModel.Design;
 using deVoid.UIFramework;
 using deVoid.Utils;
 using UnityEngine;
@@ -20,11 +21,15 @@ public class MainMenuController : AWindowController
         continueButton.onClick.AddListener(ContinueButtonClicked);
         settingsButton.onClick.AddListener(SettingsButtonClicked);
         exitButton.onClick.AddListener(ExitButtonClicked);
+
+        Signals.Get<MainMenuSignal>().AddListener(CheckContinue);
     }
 
     private void Start() {
-        continueButton.gameObject.SetActive(GameWindowController.instance.hasPreviousSave);
+        CheckContinue();
     }
+
+    private void CheckContinue() => continueButton.gameObject.SetActive(GameWindowController.instance.hasPreviousSave);
 
     private void PlayButtonClicked() => Signals.Get<PlayButtonClickedSignal>().Dispatch();
     private void ContinueButtonClicked() => Signals.Get<ContinueGameSignal>().Dispatch();
