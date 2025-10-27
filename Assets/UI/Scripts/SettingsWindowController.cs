@@ -3,6 +3,8 @@ using deVoid.Utils;
 using UnityEngine;
 using UnityEngine.UI;
 
+public class OnSettingsChangedSignal : ASignal { }
+
 public class SettingsWindowController : AWindowController
 {
     [SerializeField] Button backButton;
