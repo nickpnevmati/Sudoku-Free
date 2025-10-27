@@ -82,6 +82,15 @@ public class GameWindowController : AWindowController
     {
         SetQuickNote(false);
         quickNoteToggle.isOn = false;
+
+        SetFastMode(false);
+        fastModeToggle.isOn = false;
+
+        noteMode = false;
+        noteToggle.isOn = false;
+
+        gridController.Deselect();
+
         gridController.ConstructPuzzle(puzzle);
     }
 
