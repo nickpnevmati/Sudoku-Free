@@ -1,7 +1,4 @@
-using System;
 using System.Text;
-using Unity.Android.Gradle.Manifest;
-using UnityEditor.UI;
 using UnityEngine;
 
 public class PuzzleLoader
