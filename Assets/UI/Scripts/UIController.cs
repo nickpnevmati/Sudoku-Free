@@ -65,7 +65,7 @@ public class UIController : MonoBehaviour
     {
         public const string mainMenu = "MainMenu";
         public const string difficultySelect = "DifficultySelect";
-        public const string settignsMenu = "settingsMenu";
+        public const string settignsMenu = "SettingsWindow";
         public const string gameWindow = "WindowInGame";
         public const string confirmationPrompt = "ConfirmationPrompt";
     }
