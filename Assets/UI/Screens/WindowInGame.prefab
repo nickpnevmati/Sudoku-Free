@@ -434,7 +434,6 @@ GameObject:
   - component: {fileID: 2332029702294485590}
   - component: {fileID: 6481110395647301604}
   - component: {fileID: 4323390204524973262}
-  - component: {fileID: 7321365339903180670}
   m_Layer: 5
   m_Name: WindowInGame
   m_TagString: Untagged
@@ -522,24 +521,13 @@ MonoBehaviour:
     hideOnForegroundLost: 1
     windowQueuePriority: 0
     isPopup: 0
---- !u!114 &7321365339903180670
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3984552637212224856}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 24399a177f3fc6a07903e09c78a85abe, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GameLogicController
   numpad: {fileID: 4900727304438893003}
   gridController: {fileID: 5077416672119702591}
   fastModeButton: {fileID: 2061789200434628096}
   noteToggle: {fileID: 1924181002389730985}
   undoButton: {fileID: 3852569660391742897}
   quickNoteToggle: {fileID: 4314472750003463188}
+  exitButton: {fileID: 691418485661648482}
 --- !u!1 &4686051921179110977
 GameObject:
   m_ObjectHideFlags: 0

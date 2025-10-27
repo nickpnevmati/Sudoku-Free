@@ -66,6 +66,9 @@ public class SudokuGridController : MonoBehaviour
 
     public (int, int?, List<int>) GetCellData(int cellIndex) => (cellIndex, cells[cellIndex].number, cells[cellIndex].GetNotes());
 
+    public void PaintCellError(int cellIndex) => cells[cellIndex].SetMainTextColor(Color.red);
+    public void ResetCellColor(int cellIndex) => cells[cellIndex].SetMainTextColor(Color.white);
+
     public void Deselect()
     {
         selectedCell = null;
@@ -209,11 +212,23 @@ public class SudokuGridController : MonoBehaviour
         }
     }
 
+    public string GetGridAsString()
+    {
+        string gridString = "";
+        foreach (var cell in cells)
+            gridString += (cell.number == null ? 0 : (int)cell.number).ToString();
+        return gridString;
+    }
+
     struct Cell
     {
         public int? number
         {
-            set { mainText.text = value == null ? "" : value.ToString(); }
+            set
+            {
+                mainText.text = value == null ? "" : value.ToString();
+                if (mainText.text == "") SetMainTextColor(Color.white);
+            }
             get { return mainText.text == "" ? null : int.Parse(mainText.text); }
         }
 
@@ -254,6 +269,7 @@ public class SudokuGridController : MonoBehaviour
         public void AddNote(int number) => notes[number - 1].enabled = true;
         public void RemoveNote(int number) => notes[number - 1].enabled = false;
         public void ToggleNote(int number) => notes[number - 1].enabled = !notes[number - 1].enabled;
+
         public void ClearNotes()
         {
             foreach (var note in notes)
@@ -290,5 +306,7 @@ public class SudokuGridController : MonoBehaviour
                 image.color = c;
             }
         }
+
+        public void SetMainTextColor(Color c) => mainText.color = c;
     }
 }

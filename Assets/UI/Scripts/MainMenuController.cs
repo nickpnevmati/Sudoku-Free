@@ -16,12 +16,14 @@ public class MainMenuController : AWindowController
 
     new private void Awake()
     {
-        continueButton.gameObject.SetActive(GameManager.instance.HasPreviousSave());
-
         playButton.onClick.AddListener(PlayButtonClicked);
         continueButton.onClick.AddListener(ContinueButtonClicked);
         settingsButton.onClick.AddListener(SettingsButtonClicked);
         exitButton.onClick.AddListener(ExitButtonClicked);
+    }
+
+    private void Start() {
+        continueButton.gameObject.SetActive(GameWindowController.instance.hasPreviousSave);
     }
 
     private void PlayButtonClicked() => Signals.Get<PlayButtonClickedSignal>().Dispatch();

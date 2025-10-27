@@ -56,7 +56,7 @@ Material:
     - _BackgroundColor: {r: 0.29825264, g: 0.39841715, b: 0.7509432, a: 0.47058824}
     - _BaseColor: {r: 0, g: 0, b: 0, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _HighlightColor: {r: 1, g: 0.06320709, b: 0.092210725, a: 1}
+    - _HighlightColor: {r: 0.08464464, g: 0.14256449, b: 0.7415092, a: 1}
     - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

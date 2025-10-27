@@ -16,7 +16,7 @@ public class DifficultySelectionCtrl : AWindowController
         mediumButton.onClick.AddListener(delegate { StartGame(1); });
         hardButton.onClick.AddListener(delegate { StartGame(2); });
         evilButton.onClick.AddListener(delegate { StartGame(3); });
-        backButton.onClick.AddListener(Signals.Get<GoBackSignal>().Dispatch);
+        backButton.onClick.AddListener(Signals.Get<MainMenuSignal>().Dispatch);
     }
 
     private void StartGame(int difficulty)

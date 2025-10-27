@@ -3,27 +3,39 @@ using deVoid.UIFramework;
 using deVoid.Utils;
 using System.Collections.Generic;
 
-public class GoBackSignal : ASignal { }
+public class MainMenuSignal : ASignal { }
 
 public class UIController : MonoBehaviour
 {
     [SerializeField] UISettings settings;
 
     private UIFrame uiFrame;
-    private GameManager gameManager;
 
     private Stack<string> screenHistory = new Stack<string>();
     private string currentScreen;
 
     void Awake()
     {
-        gameManager = GetComponent<GameManager>();
-
+        Signals.Get<MainMenuSignal>().AddListener(ShowMainMenu);
+        Signals.Get<SettingsButtonClickedSignal>().AddListener(ShowSettings);
         Signals.Get<StartNewGameSignal>().AddListener(StartNewGame);
         Signals.Get<ContinueGameSignal>().AddListener(ContinueGame);
-        Signals.Get<SettingsButtonClickedSignal>().AddListener(ShowSettings);
+
         Signals.Get<PlayButtonClickedSignal>().AddListener(ShowDifficultySelect);
-        Signals.Get<GoBackSignal>().AddListener(ShowPreviousScreen);
+
+        Signals.Get<ShowConfirmationPopupSignal>().AddListener(ShowConfirmationPopup);
+    }
+
+    void OnDestroy()
+    {
+        Signals.Get<MainMenuSignal>().RemoveListener(ShowMainMenu);
+        Signals.Get<SettingsButtonClickedSignal>().RemoveListener(ShowSettings);
+        Signals.Get<StartNewGameSignal>().RemoveListener(StartNewGame);
+        Signals.Get<ContinueGameSignal>().RemoveListener(ContinueGame);
+
+        Signals.Get<PlayButtonClickedSignal>().RemoveListener(ShowDifficultySelect);
+
+        Signals.Get<ShowConfirmationPopupSignal>().RemoveListener(ShowConfirmationPopup);
     }
 
     private void Start()
@@ -33,33 +45,20 @@ public class UIController : MonoBehaviour
         currentScreen = ScreenIds.mainMenu;
     }
 
+    private void ShowMainMenu() => uiFrame.OpenWindow(ScreenIds.mainMenu);
+
     private void StartNewGame(int difficulty)
     {
-        gameManager.StartGame(difficulty);
-        ShowScreenWithHistory(ScreenIds.gameWindow);
+        uiFrame.OpenWindow(ScreenIds.gameWindow);
     }
 
-    private void ContinueGame()
-    {
-        gameManager.ContinueGame();
-        ShowScreenWithHistory(ScreenIds.gameWindow);
-    }
+    private void ContinueGame() => uiFrame.OpenWindow(ScreenIds.gameWindow);
+    private void ShowSettings() => uiFrame.OpenWindow(ScreenIds.settignsMenu);
+    private void ShowDifficultySelect() => uiFrame.OpenWindow(ScreenIds.difficultySelect);
 
-    private void ShowSettings() => ShowScreenWithHistory(ScreenIds.settignsMenu);
-    private void ShowDifficultySelect() => ShowScreenWithHistory(ScreenIds.difficultySelect);
-
-    private void ShowScreenWithHistory(string screenId)
+    private void ShowConfirmationPopup(ConfirmationPopupProperties props)
     {
-        screenHistory.Push(currentScreen);
-        currentScreen = screenId;
-        uiFrame.OpenWindow(screenId);
-    }
-
-    private void ShowPreviousScreen()
-    {
-        string screenId = screenHistory.Pop();
-        uiFrame.OpenWindow(screenId);
-        currentScreen = screenId;
+        uiFrame.OpenWindow(ScreenIds.confirmationPrompt, props);
     }
 
     private static class ScreenIds
@@ -68,5 +67,6 @@ public class UIController : MonoBehaviour
         public const string difficultySelect = "DifficultySelect";
         public const string settignsMenu = "settingsMenu";
         public const string gameWindow = "WindowInGame";
+        public const string confirmationPrompt = "ConfirmationPrompt";
     }
 }
