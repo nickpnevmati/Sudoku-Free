@@ -10,7 +10,7 @@ public class GameWindowController : AWindowController
     [Header("Custom Properties")]
     [SerializeField] NumpadController numpad;
     [SerializeField] SudokuGridController gridController;
-    [SerializeField] Toggle fastModeButton;
+    [SerializeField] Toggle fastModeToggle;
     [SerializeField] Toggle noteToggle;
     [SerializeField] Button undoButton;
     [SerializeField] Toggle quickNoteToggle;
@@ -32,13 +32,17 @@ public class GameWindowController : AWindowController
 
     public static GameWindowController instance;
 
+    private PuzzleLoader puzzleLoader;
+
     new private void Awake()
     {
         instance = this;
 
+        puzzleLoader = new PuzzleLoader();
+
         gridController.onCellClicked += HandleCellClicked;
         numpad.onButtonClicked += HandleNumpadClicked;
-        fastModeButton.onValueChanged.AddListener(SetFastMode);
+        fastModeToggle.onValueChanged.AddListener(SetFastMode);
         noteToggle.onValueChanged.AddListener(value => noteMode = value);
         undoButton.onClick.AddListener(Undo);
         quickNoteToggle.onValueChanged.AddListener(SetQuickNote);
@@ -59,20 +63,25 @@ public class GameWindowController : AWindowController
 
     private void StartGame(int difficulty)
     {
-        PuzzleLoader puzzleLoader = new PuzzleLoader();
         int randomIndex = Mathf.FloorToInt(Random.Range(0, 100));
         (puzzle, solution) = puzzleLoader.LoadPuzzle(randomIndex);
 
-        gridController.ConstructPuzzle(puzzle);
+        InitializeGame();
     }
 
     private void ContinueGame()
-    {
+    {        
         if (!hasPreviousSave) return;
 
-        PuzzleLoader puzzleLoader = new PuzzleLoader();
         (puzzle, solution) = puzzleLoader.LoadPuzzle(System.IO.File.ReadAllText(savePath));
 
+        InitializeGame();
+    }
+
+    private void InitializeGame()
+    {
+        SetQuickNote(false);
+        quickNoteToggle.isOn = false;
         gridController.ConstructPuzzle(puzzle);
     }
 
@@ -80,10 +89,13 @@ public class GameWindowController : AWindowController
     {
         Signals.Get<ShowConfirmationPopupSignal>().Dispatch(
             new ConfirmationPopupProperties(
-                title:"Exit Game",
+                title: "Exit Game",
                 message: "Are you sure you want exit the game?",
                 confirmButtonText: "Yes, exit",
-                confirmAction: delegate { Signals.Get<MainMenuSignal>().Dispatch(); },
+                confirmAction: delegate
+                {
+                    Signals.Get<MainMenuSignal>().Dispatch();
+                },
                 cancelButtonText: "No, stay",
                 cancelAction: delegate { }
             )
