@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using deVoid.Utils;
 using deVoid.UIFramework;
 using System.Collections.Generic;
+using System.Linq;
 
 public class GameWindowController : AWindowController
 {
@@ -126,9 +127,11 @@ public class GameWindowController : AWindowController
 
         if (selectedCell == null) return;
 
+
         history.Push(gridController.GetCellData((int)selectedCell));
         gridController.PaintCell((int)selectedCell, (int)number, noteMode);
 
+        System.IO.File.WriteAllText(savePath, gridController.GetGridAsString() + solution);
         CheckCorrect((int)selectedCell, (int)number);
     }
 
@@ -152,6 +155,7 @@ public class GameWindowController : AWindowController
         gridController.PaintCell(cellIndex, (int)selectedNumber, noteMode);
         gridController.HighlightNumber((int)selectedNumber);
 
+        System.IO.File.WriteAllText(savePath, gridController.GetGridAsString() + solution);
         CheckCorrect(cellIndex, (int)selectedNumber);
     }
 
@@ -184,6 +188,7 @@ public class GameWindowController : AWindowController
         string grid = gridController.GetGridAsString();
         if (grid != solution) return;
 
+        if (hasPreviousSave) System.IO.File.Delete(savePath);
         Signals.Get<ShowConfirmationPopupSignal>().Dispatch(GetPopupProperties());
     }
 
