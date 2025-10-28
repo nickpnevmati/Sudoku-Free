@@ -9,9 +9,9 @@ public class UIController : MonoBehaviour
 {
     [SerializeField] UISettings settings;
 
-    [SerializeField] Image backgroundImage;
-
     private UIFrame uiFrame;
+
+    private Image backgroundImage;
 
     void Awake()
     {
@@ -43,6 +43,7 @@ public class UIController : MonoBehaviour
     {
         uiFrame = settings.CreateUIInstance();
         uiFrame.OpenWindow(ScreenIds.mainMenu);
+        backgroundImage = uiFrame.GetComponentInChildren<Image>();
     }
 
     private void ShowMainMenu() => uiFrame.OpenWindow(ScreenIds.mainMenu);
@@ -53,7 +54,7 @@ public class UIController : MonoBehaviour
 
     private void OnSettingsChanged()
     {
-        backgroundImage.color = ColorSaver.LoadColor("background_color", Color.white);
+        backgroundImage.color = ColorSaver.LoadColor(SettingsKeys.backgroundColor, Color.white);
     }
 
     private void ShowConfirmationPopup(ConfirmationPopupProperties props)
