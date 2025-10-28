@@ -11,51 +11,36 @@ public class UIController : MonoBehaviour
 
     private UIFrame uiFrame;
 
-    private Image backgroundImage;
-
     void Awake()
     {
         Signals.Get<MainMenuSignal>().AddListener(ShowMainMenu);
         Signals.Get<SettingsButtonClickedSignal>().AddListener(ShowSettings);
-        Signals.Get<OnSettingsChangedSignal>().AddListener(OnSettingsChanged);
         Signals.Get<StartNewGameSignal>().AddListener(OnStartNewGameSignal);
         Signals.Get<ContinueGameSignal>().AddListener(OnContinueGameSignal);
-
         Signals.Get<PlayButtonClickedSignal>().AddListener(ShowDifficultySelect);
-
         Signals.Get<ShowConfirmationPopupSignal>().AddListener(ShowConfirmationPopup);
+
+        uiFrame = settings.CreateUIInstance();
     }
+
+    private void Start() => uiFrame.OpenWindow(ScreenIds.mainMenu);
 
     void OnDestroy()
     {
         Signals.Get<MainMenuSignal>().RemoveListener(ShowMainMenu);
         Signals.Get<SettingsButtonClickedSignal>().RemoveListener(ShowSettings);
-        Signals.Get<OnSettingsChangedSignal>().RemoveListener(OnSettingsChanged);
         Signals.Get<StartNewGameSignal>().RemoveListener(OnStartNewGameSignal);
         Signals.Get<ContinueGameSignal>().RemoveListener(OnContinueGameSignal);
-
         Signals.Get<PlayButtonClickedSignal>().RemoveListener(ShowDifficultySelect);
-
         Signals.Get<ShowConfirmationPopupSignal>().RemoveListener(ShowConfirmationPopup);
     }
 
-    private void Start()
-    {
-        uiFrame = settings.CreateUIInstance();
-        uiFrame.OpenWindow(ScreenIds.mainMenu);
-        backgroundImage = uiFrame.GetComponentInChildren<Image>();
-    }
-
+    
     private void ShowMainMenu() => uiFrame.OpenWindow(ScreenIds.mainMenu);
     private void OnStartNewGameSignal(int difficulty) => uiFrame.OpenWindow(ScreenIds.gameWindow);
     private void OnContinueGameSignal() => uiFrame.OpenWindow(ScreenIds.gameWindow);
     private void ShowSettings() => uiFrame.OpenWindow(ScreenIds.settignsMenu);
     private void ShowDifficultySelect() => uiFrame.OpenWindow(ScreenIds.difficultySelect);
-
-    private void OnSettingsChanged()
-    {
-        backgroundImage.color = ColorSaver.LoadColor(SettingsKeys.backgroundColor, Color.white);
-    }
 
     private void ShowConfirmationPopup(ConfirmationPopupProperties props)
     {

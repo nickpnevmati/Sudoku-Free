@@ -2,7 +2,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
-using UnityEngine.UIElements.Experimental;
 
 [RequireComponent(typeof(Toggle))]
 public class SliderToggle : MonoBehaviour
@@ -24,13 +23,11 @@ public class SliderToggle : MonoBehaviour
 
         toggle = GetComponent<Toggle>();
         toggle.onValueChanged.AddListener(TriggerToggleAnimation);
-
-        SetState(toggle.isOn);
     }
 
     public void SetState(bool value)
     {
-        toggle.SetIsOnWithoutNotify(true);
+        toggle.SetIsOnWithoutNotify(value);
         slider.transform.position = toggle.isOn ? sliderOnPos.position : sliderOffPos.position;
     }
 
