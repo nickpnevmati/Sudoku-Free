@@ -1,4 +1,3 @@
-using UnityEditor.Timeline.Actions;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "ScriptableObjects/Theme")]
