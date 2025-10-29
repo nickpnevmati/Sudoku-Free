@@ -26,19 +26,11 @@ public class GameWindowController : AWindowController
 
     private string puzzle, solution;
 
-    private string savePath;
-
-    public bool hasPreviousSave => System.IO.File.Exists(savePath);
-
     public static GameWindowController instance;
-
-    private PuzzleLoader puzzleLoader;
 
     new private void Awake()
     {
         instance = this;
-
-        puzzleLoader = new PuzzleLoader();
 
         gridController.onCellClicked += HandleCellClicked;
         numpad.onButtonClicked += HandleNumpadClicked;
@@ -47,8 +39,6 @@ public class GameWindowController : AWindowController
         undoButton.onClick.AddListener(Undo);
         quickNoteToggle.onValueChanged.AddListener(SetQuickNote);
         exitButton.onClick.AddListener(ExitGame);
-
-        savePath = System.IO.Path.Combine(Application.persistentDataPath, "savefile");
 
         Signals.Get<StartNewGameSignal>().AddListener(StartGame);
         Signals.Get<ContinueGameSignal>().AddListener(ContinueGame);
@@ -64,17 +54,14 @@ public class GameWindowController : AWindowController
     private void StartGame(int difficulty)
     {
         int randomIndex = Mathf.FloorToInt(Random.Range(0, 100));
-        (puzzle, solution) = puzzleLoader.LoadPuzzle(randomIndex);
-
+        (puzzle, solution) = PuzzleLoader.LoadPuzzle(randomIndex);
         InitializeGame();
     }
 
     private void ContinueGame()
     {        
-        if (!hasPreviousSave) return;
-
-        (puzzle, solution) = puzzleLoader.LoadPuzzle(System.IO.File.ReadAllText(savePath));
-
+        if (!PuzzleLoader.hasPreviousSave) return;
+        (puzzle, solution) = PuzzleLoader.LoadSaved();
         InitializeGame();
     }
 
@@ -152,7 +139,7 @@ public class GameWindowController : AWindowController
         history.Push(gridController.GetCellData((int)selectedCell));
         gridController.PaintCell((int)selectedCell, (int)number, noteMode);
 
-        System.IO.File.WriteAllText(savePath, gridController.GetGridAsString() + solution);
+        PuzzleLoader.SavePuzzle(gridController.GetGridAsString(), solution);
         CheckCorrect((int)selectedCell, (int)number);
     }
 
@@ -176,7 +163,7 @@ public class GameWindowController : AWindowController
         gridController.PaintCell(cellIndex, (int)selectedNumber, noteMode);
         gridController.HighlightNumber((int)selectedNumber);
 
-        System.IO.File.WriteAllText(savePath, gridController.GetGridAsString() + solution);
+        PuzzleLoader.SavePuzzle(gridController.GetGridAsString(), solution);
         CheckCorrect(cellIndex, (int)selectedNumber);
     }
 
@@ -209,7 +196,7 @@ public class GameWindowController : AWindowController
         string grid = gridController.GetGridAsString();
         if (grid != solution) return;
 
-        if (hasPreviousSave) System.IO.File.Delete(savePath);
+        if (PuzzleLoader.hasPreviousSave) PuzzleLoader.DeleteSave();
         Signals.Get<ShowConfirmationPopupSignal>().Dispatch(GetPopupProperties());
     }
 

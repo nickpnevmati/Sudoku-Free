@@ -54,9 +54,8 @@ public class GameLogicController : MonoBehaviour
 
     private void StartGame(int difficulty)
     {
-        PuzzleLoader puzzleLoader = new PuzzleLoader();
         int randomIndex = Mathf.FloorToInt(Random.Range(0, 100));
-        (puzzle, solution) = puzzleLoader.LoadPuzzle(randomIndex);
+        (puzzle, solution) = PuzzleLoader.LoadPuzzle(randomIndex);
 
         gridController.ConstructPuzzle(puzzle);
     }
@@ -65,8 +64,7 @@ public class GameLogicController : MonoBehaviour
     {
         if (!hasPreviousSave) return;
 
-        PuzzleLoader puzzleLoader = new PuzzleLoader();
-        (puzzle, solution) = puzzleLoader.LoadPuzzle(System.IO.File.ReadAllText(savePath));
+        (puzzle, solution) = PuzzleLoader.LoadSaved();
 
         gridController.ConstructPuzzle(puzzle);
     }

@@ -3,30 +3,28 @@ using UnityEngine;
 
 public class PuzzleLoader
 {
-    byte[] puzzleData;
+    // each puzzle consists of the puzzle and the solution concatenated (plus a newline), a total of 9x9x2+1=163 chars [0-9]
+    const int puzzleStringSize = 163;
 
-    const int puzzleStringSize = 163; // each puzzle consists of the puzzle and the solution concatenated (plus a newline), a total of 9x9x2+1=163 chars [0-9]
-    int numPuzzles = 0;
+    public static string savePath => System.IO.Path.Combine(Application.persistentDataPath, "savefile");
+    public static bool hasPreviousSave => System.IO.File.Exists(savePath);
 
-    public PuzzleLoader()
+    public static (string, string) LoadPuzzle(int index)
     {
         var puzzlesFile = Resources.Load<TextAsset>("puzzles");
-        puzzleData = puzzlesFile.bytes;
-        numPuzzles = puzzleData.Length / puzzleStringSize;
-    }
-
-    public (string, string) LoadPuzzle(int index)
-    {
         byte[] buffer = new byte[puzzleStringSize];
-        System.Buffer.BlockCopy(puzzleData, index * puzzleStringSize, buffer, 0, puzzleStringSize);
+        System.Buffer.BlockCopy(puzzlesFile.bytes, index * puzzleStringSize, buffer, 0, puzzleStringSize);
         string puzzleString = Encoding.UTF8.GetString(buffer).TrimEnd('\0', ' ', '\n', '\r');
         string puzzle = puzzleString.Substring(0, 81);
         string solution = puzzleString.Substring(81, 81);
         return (puzzle, solution);
     }
 
-    public (string, string) LoadPuzzle(string puzzleString)
+    public static (string, string) LoadSaved()
     {
+        if (!hasPreviousSave) throw new System.Exception("No previous save file exists");
+        string puzzleString = System.IO.File.ReadAllText(savePath);
+
         char[] puzzle = new char[81];
         char[] solution = new char[81];
 
@@ -35,5 +33,11 @@ public class PuzzleLoader
 
         return (new string(puzzle), new string(solution));
     }
-    
+
+    public static void SavePuzzle(string puzzle, string solution) => System.IO.File.WriteAllText(savePath, puzzle + solution);
+    public static void DeleteSave()
+    {
+        if (!hasPreviousSave) return;
+        System.IO.File.Delete(savePath);
+    }
 }
