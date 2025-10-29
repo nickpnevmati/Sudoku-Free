@@ -3,7 +3,6 @@ using UnityEngine.UI;
 using deVoid.Utils;
 using deVoid.UIFramework;
 using System.Collections.Generic;
-using System.Linq;
 
 public class GameWindowController : AWindowController
 {
@@ -208,7 +207,7 @@ public class GameWindowController : AWindowController
             confirmButtonText: "Yes!",
             confirmAction: delegate { Signals.Get<StartNewGameSignal>().Dispatch(0); },
             cancelButtonText: "Nah",
-            cancelAction: delegate {}
+            cancelAction: delegate { Signals.Get<MainMenuSignal>().Dispatch(); }
         );
     }
 }
