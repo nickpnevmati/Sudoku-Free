@@ -3,7 +3,8 @@ using UnityEngine.UI;
 using TMPro;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using deVoid.Utils;
+using System.Data.Common;
 
 public class NumpadController : MonoBehaviour
 {
@@ -12,7 +13,7 @@ public class NumpadController : MonoBehaviour
 
     private Toggle activeToggle;
 
-    public Action<int?> onButtonClicked;
+    public Action<int> onButtonClicked;
 
     private bool toggleMode;
 
@@ -26,23 +27,27 @@ public class NumpadController : MonoBehaviour
             Button button = child.GetComponentInChildren<Button>();
             button.onClick.AddListener(delegate { onButtonClicked.Invoke(childIndex); });
             buttons[childIndex - 1] = button;
+
             foreach (var tmp_text in child.GetComponentsInChildren<TMP_Text>(includeInactive: true))
                 tmp_text.text = childIndex.ToString();
 
             Toggle toggle = child.GetComponentInChildren<Toggle>(includeInactive: true);
-            toggle.onValueChanged.AddListener(TogglePressed);
+            toggle.onValueChanged.AddListener(delegate(bool value) { TogglePressed(value, childIndex - 1); });
             toggles[childIndex - 1] = toggle;
         }
+
+        Signals.Get<OnSettingsChangedSignal>().AddListener(OnSettingsChanged);
     }
 
-    public void SetModeToggle(bool value)
+    public void SetToggleMode(bool value)
     {
         toggleMode = value;
         if (!toggleMode)
         {
-            onButtonClicked.Invoke(null);
-            if (activeToggle) activeToggle.isOn = false;
-            activeToggle = null;
+            for (int i = 0; i < toggles.Length; i++)
+            {
+                TogglePressedWithoutNotify(false, i);
+            }
         }
 
         for (int i = 0; i < buttons.Length; i++)
@@ -51,13 +56,6 @@ public class NumpadController : MonoBehaviour
 
             buttons[i].gameObject.SetActive(!toggleMode);
             toggles[i].gameObject.SetActive(toggleMode);
-        }
-
-        var idx = Enumerable.Range(0, toggles.Length).FirstOrDefault(i => !disabled.Contains(i + 1));
-        if (idx < toggles.Length)
-        {
-            toggles[idx].isOn = true;
-            onButtonClicked.Invoke(idx + 1);
         }
     }
 
@@ -74,28 +72,29 @@ public class NumpadController : MonoBehaviour
     public void SetActiveToggle(int number)
     {
         if (!toggleMode) return;
-
-        for (int i = 0; i < toggles.Length; i++)
-        {
-            toggles[i].isOn = false;
-        }
-        toggles[number - 1].isOn = true;
+        TogglePressedWithoutNotify(true, number - 1);
     }
 
-    private void TogglePressed(bool newValue)
+    private void TogglePressed(bool newValue, int index)
     {
-        if (!newValue)
+        TogglePressedWithoutNotify(newValue, index);
+        onButtonClicked.Invoke(index + 1);
+    }
+
+    private void TogglePressedWithoutNotify(bool newValue, int index)
+    {
+        foreach (var toggle in toggles)
         {
-            onButtonClicked.Invoke(null);
-            activeToggle = null;
-            return;
+            toggle.interactable = true;
+            toggle.SetIsOnWithoutNotify(false);
         }
 
-        if (activeToggle) activeToggle.isOn = false;
+        toggles[index].SetIsOnWithoutNotify(newValue);
+        toggles[index].interactable = !newValue;
+    }
 
-        //assuming at-most one toggle is on at a time, this should work
-        int index = Array.FindIndex(toggles, x => x.isOn);
-        activeToggle = toggles[index];
-        onButtonClicked.Invoke(index + 1);
+    private void OnSettingsChanged(Settings settings)
+    {
+
     }
 }

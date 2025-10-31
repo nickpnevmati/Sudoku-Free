@@ -1,7 +1,9 @@
-using UnityEngine;
 using TMPro;
-using UnityEngine.UI;
 using System;
+using UnityEngine;
+using System.Linq;
+using deVoid.Utils;
+using UnityEngine.UI;
 using System.Collections.Generic;
 
 [RequireComponent(typeof(SudokuGridShaderController))]
@@ -10,11 +12,12 @@ public class SudokuGridController : MonoBehaviour
     private SudokuGridShaderController shaderController;
 
     private Cell[] cells;
-    private int? selectedCell;
 
     private Action<int> _onCellClicked;
     public Action<int> onCellClicked;
 
+    public string gridString { get => GridToString(false); }
+    public string gridState { get => GridToString(true); }
 
     void Awake()
     {
@@ -26,65 +29,25 @@ public class SudokuGridController : MonoBehaviour
             cells[cellNumber] = new Cell(cell, this);
         }
 
-        _onCellClicked += HandleCellClicked;
+        _onCellClicked += OnPreCellClicked;
         _onCellClicked += onCellClicked.Invoke;
+
+        Signals.Get<OnSettingsChangedSignal>().AddListener(OnSettingsChanged);
     }
 
-    public void ConstructPuzzle(string puzzle)
+    public void ConstructGrid(string puzzle)
     {
         for (int i = 0; i < puzzle.Length; i++)
         {
-            int? number = puzzle[i] != '0' ? int.Parse(puzzle[i].ToString()) : null;
-            cells[i].number = number;
+            cells[i].number = puzzle[i] != '0' ? int.Parse(puzzle[i].ToString()) : null;
         }
-    }
-
-    public void PaintCell(int cellIndex, int? number, bool note)
-    {
-        if (note)
-        {
-            if (number == null)
-                throw new ArgumentNullException(nameof(number), "Number cannot be null when adding a note.");
-
-            if (cells[cellIndex].number != null) return;
-
-            cells[cellIndex].ToggleNote((int)number);
-            ReselectCell();
-            return;
-        }
-
-        cells[cellIndex].number = number;
-        cells[cellIndex].ClearNotes();
-        ReselectCell();
-
-        if (number != null)
-        {
-            ClearGroupNotes(cellIndex, (int)number);
-            ClearNoteHighlights();
-        }
-    }
-
-    public (int, int?, List<int>) GetCellData(int cellIndex) => (cellIndex, cells[cellIndex].number, cells[cellIndex].GetNotes());
-
-    public void PaintCellError(int cellIndex) => cells[cellIndex].SetMainTextColor(Color.red);
-    public void ResetCellColor(int cellIndex) => cells[cellIndex].SetMainTextColor(Color.white);
-
-    public void Deselect()
-    {
-        selectedCell = null;
-        shaderController.ClearHighlighting();
-        ClearNoteHighlights();
     }
 
     public void QuickNote(bool set)
     {
         if (!set)
         {
-            for (int i = 0; i < cells.Length; i++)
-            {
-                ClearNoteHighlights();
-                cells[i].ClearNotes();
-            }
+            foreach (var cell in cells) cell.ClearNotes();
             return;
         }
 
@@ -94,147 +57,189 @@ public class SudokuGridController : MonoBehaviour
 
             for (int num = 1; num <= 9; num++)
             {
-                int col = idx % 9;
-                int row = idx / 9;
-
                 bool found = false;
 
-                for (int k = 0; k < 9; k++)
+                foreach (int rowcol in CellRowCol(idx))
                 {
-                    if (cells[col + k * 9].number == num || cells[row * 9 + k].number == num)
+                    if (cells[rowcol].number == num)
                     {
                         found = true;
                         break;
                     }
                 }
 
-                int groupCol = col - col % 3;
-                int groupRow = row - row % 3;
-                for (int k = 0; k < 3; k++)
+                foreach (int groupCellIndex in CellGroupIndices(idx))
                 {
-                    for (int l = 0; l < 3; l++)
+                    if (cells[groupCellIndex].number == num)
                     {
-                        if (cells[(groupRow + k) * 9 + groupCol + l].number == num)
-                        {
-                            found = true;
-                            break;
-                        }
+                        found = true;
+                        break;
                     }
                 }
-
 
                 if (!found) cells[idx].AddNote(num);
             }
         }
     }
 
-    private void HandleCellClicked(int index)
+    public void SetNumber(int? number, int index) => cells[index].number = number;
+    public int? GetNumber(int index) => cells[index].number;
+    public void SetError(int index, bool error) => cells[index].SetError(error);
+    public void SetNote(int number, int index) => cells[index].AddNote(number);
+    public void EraseNote(int number, int index) => cells[index].RemoveNote(number);
+    public void ToggleNote(int number, int index) => cells[index].ToggleNote(number);
+    public void ClearNotes(int index) => cells[index].ClearNotes();
+    public void ClearAllNotes() => Array.ForEach(cells, cell => cell.ClearNotes());
+
+    public void SelectCell(int index)
     {
         shaderController.ClearHighlighting();
-        ClearNoteHighlights();
-
-        if (selectedCell == index)
+        int? number = cells[index].number;
+        if (number == null)
         {
-            selectedCell = null;
-            return;
+            shaderController.HighlightCell(index);
         }
-        selectedCell = index;
-
-        shaderController.HighlightCell(index);
-
-        if (cells[index].number == null) return;
-
-        HighlightNotes(cells[index]);
-
-        for (int i = 0; i < cells.Length; i++)
+        else
         {
-            if (cells[i].number == cells[index].number)
-                shaderController.HighlightCell(i);
-        }
-    }
-
-    private void ReselectCell()
-    {
-        if (selectedCell == null) return;
-        int cell = (int)selectedCell;
-        selectedCell = null;
-        HandleCellClicked(cell);
-    }
-
-    private void ClearGroupNotes(int cellIndex, int number)
-    {
-        int row = cellIndex / 9;
-        int col = cellIndex % 9;
-
-        for (int i = 0; i < 9; i++)
-        {
-            cells[row * 9 + i].RemoveNote(number);
-            cells[i * 9 + col].RemoveNote(number);
-        }
-
-        int groupRow = row - row % 3;
-        int groupCol = col - col % 3;
-
-        for (int i = groupRow; i < groupRow + 3; i++)
-        {
-            for (int j = groupCol; j < groupCol + 3; j++)
+            for (int i = 0; i < cells.Length; i++)
             {
-                cells[i * 9 + j].RemoveNote(number);
+                if (cells[i].number != number) continue;
+
+                shaderController.HighlightCell(i);
             }
         }
     }
 
-    public void HighlightNumber(int number)
+    public void HighlightNumbers(int number)
     {
         shaderController.ClearHighlighting();
-        ClearNoteHighlights();
 
         for (int i = 0; i < cells.Length; i++)
         {
-            cells[i].HighlightNote(number);
-            if (cells[i].number == number) shaderController.HighlightCell(i);
+            var cell = cells[i];
+            if (cell.number == number) shaderController.HighlightCell(i);
+            cell.ClearNoteHighlights();
+            cell.HighlightNote(number);
         }
     }
 
-    private void HighlightNotes(Cell highlightedCell)
+    public void SetGridState(string gridState)
     {
-        foreach (var cell in cells)
+        ClearAllNotes();
+        int i = 0;
+        bool notes = false;
+        foreach (char c in gridState)
         {
-            cell.HighlightNote((int)highlightedCell.number);
+            switch (c)
+            {
+                case ' ':
+                    notes = false;
+                    i++;
+                    break;
+                case '0':
+                    notes = true;
+                    cells[i].number = null;
+                    if (!notes && gridState[i + 1] != ' ')
+                        throw new Exception("Grid State Encoding Error");
+                    break;
+                case 'q':
+                    break;
+                default:
+                    int charVal = (int)char.GetNumericValue(c);
+                    if (notes)
+                        cells[i].AddNote(charVal);
+                    else
+                        cells[i].number = charVal;
+                    break;
+            }
         }
     }
 
-    private void ClearNoteHighlights()
-    {
-        foreach (var cell in cells)
-        {
-            cell.RemoveNoteHighlights();
-        }
-    }
-
-    public string GetGridAsString()
+    private string GridToString(bool includeNotes)
     {
         string gridString = "";
+
         foreach (var cell in cells)
-            gridString += (cell.number == null ? 0 : (int)cell.number).ToString();
-        return gridString;
+        {
+            var (number, notes) = cell.GetCellData();
+            if (number != null)
+            {
+                gridString += cell.number.ToString();
+            }
+            else
+            {
+                gridString += "0";
+                if (includeNotes)
+                    foreach (var note in notes) gridString += note;
+            }
+            gridString += " ";
+        }
+
+        return gridString.Trim();
+    }
+
+    public IEnumerable<(int?, int)> EnumerateCells()
+    {
+        for (int i = 0; i < cells.Length; i++)
+        {
+            yield return (cells[i].number, i);
+        }
+    }
+
+    private void OnPreCellClicked(int value)
+    {
+        shaderController.ClearHighlighting();
+    }
+
+    private void OnSettingsChanged(Settings settings)
+    {
+        shaderController.primaryColor = settings.theme.primary;
+        shaderController.secondaryColor = settings.theme.secondary;
+        shaderController.backgroundColor = settings.theme.border;
+    }
+
+    private IEnumerable<int> CellRCG(int index)
+    {
+        foreach (int idx in CellRowCol(index)) yield return idx;
+        foreach (int idx in CellGroupIndices(index)) yield return idx;
+    }
+
+    private IEnumerable<int> CellRowCol(int index)
+    {
+        int row = index / 9;
+        int col = index % 9;
+
+        for (int i = 0; i < 9; i++)
+        {
+            yield return row * 9 + i;
+            yield return i * 9 + col;
+        }
+    }
+
+    private IEnumerable<int> CellGroupIndices(int index) => CellGroupIndices(index / 9, index % 9);
+
+    private IEnumerable<int> CellGroupIndices(int row, int col)
+    {
+        int groupRow = row - row % 3;
+        int groupCol = col - col % 3;
+
+        for (int r = groupRow; r < groupRow + 3; r++)
+        {
+            for (int c = groupCol; c < groupCol + 3; c++)
+            {
+                yield return r * 9 + c;
+            }
+        }
     }
 
     struct Cell
     {
-        public int? number
-        {
-            set
-            {
-                mainText.text = value == null ? "" : value.ToString();
-                if (mainText.text == "") SetMainTextColor(Color.white);
-            }
-            get { return mainText.text == "" ? null : int.Parse(mainText.text); }
-        }
+        public int? number { set => SetCellNumber(value); get => GetCellNumber(); }
 
         private TMP_Text mainText;
-        private TMP_Text[] notes;
-        private Image[] noteHighlights;
+        Color mainTextColor;
+        Color errorColor;
+        private Note[] notes;
 
         private Button button;
 
@@ -243,70 +248,86 @@ public class SudokuGridController : MonoBehaviour
             mainText = cell.GetComponent<TMP_Text>();
             mainText.text = "";
 
-            notes = new TMP_Text[9];
-            noteHighlights = new Image[9];
+            mainTextColor = Color.white;
+            errorColor = Color.red;
+
+            notes = new Note[9];
             foreach (Transform child in cell)
             {
                 if (!child.name.Contains("Note")) continue;
 
-                TMP_Text note_text = child.GetComponentInChildren<TMP_Text>();
-                if (note_text == null) continue;
-
-
-                int index = int.Parse(child.name.Split('.')[1]) - 1;
-                notes[index] = note_text;
-                notes[index].enabled = false;
-                notes[index].text = (index + 1).ToString();
-
-                noteHighlights[index] = child.GetComponentInChildren<Image>();
+                int noteIndex = int.Parse(child.name.Split(".")[1]) - 1;
+                notes[noteIndex] = new Note(child);
             }
 
             button = cell.GetComponentInChildren<Button>();
             int cellIndex = int.Parse(cell.name.Split('.')[1]) - 1;
             button.onClick.AddListener(delegate { controller._onCellClicked.Invoke(cellIndex); });
+
+            Signals.Get<OnSettingsChangedSignal>().AddListener(OnSettingsChanged);
         }
 
-        public void AddNote(int number) => notes[number - 1].enabled = true;
-        public void RemoveNote(int number) => notes[number - 1].enabled = false;
-        public void ToggleNote(int number) => notes[number - 1].enabled = !notes[number - 1].enabled;
+        public void SetError(bool error) => mainText.color = error ? errorColor : mainTextColor;
+        public void AddNote(int number) => notes[number - 1].Set();
+        public void RemoveNote(int number) => notes[number - 1].Unset();
+        public void ToggleNote(int number) => notes[number - 1].Toggle();
+        public void ClearNotes() => Array.ForEach(notes, note => note.Unset());
+        public void HighlightNote(int number) => notes[number - 1].Highlight();
+        public void RemoveNoteHighlight(int number) => notes[number - 1].ClearHighlight();
+        public void ClearNoteHighlights() => Array.ForEach(notes, note => note.ClearHighlight());
 
-        public void ClearNotes()
+        public (int?, int[]) GetCellData() => (number, notes
+            .Select((note, i) => note.enabled ? i + 1 : (int?)null)
+            .Where(idx => idx.HasValue)
+            .Select(idx => idx.Value)
+            .ToArray()
+        );
+
+        private int? GetCellNumber() => mainText.text == "" ? null : int.Parse(mainText.text);
+        private void SetCellNumber(int? value) => mainText.text = value == null ? "" : value.ToString();
+
+        private void OnSettingsChanged(Settings settings)
         {
-            foreach (var note in notes)
+            mainTextColor = settings.theme.textPrimary;
+            errorColor = settings.theme.error;
+        }
+
+        struct Note
+        {
+            public bool enabled { get => gameObject.activeSelf; }
+
+            GameObject gameObject;
+            TMP_Text textObject;
+            Image highlight;
+
+            public Note(Transform transform)
             {
-                note.enabled = false;
+                gameObject = transform.gameObject;
+                textObject = transform.GetComponentInChildren<TMP_Text>();
+                textObject.text = transform.name.Split(".")[1];
+                highlight = transform.GetComponentInChildren<Image>();
+
+                Signals.Get<OnSettingsChangedSignal>().AddListener(OnSettingsChanged);
+            }
+
+            public void Set() => SetEnabled(true);
+            public void Unset() => SetEnabled(false);
+            public void Toggle() => SetEnabled(!gameObject.activeSelf);
+            public void Highlight() => highlight.enabled = true;
+            public void ClearHighlight() => highlight.enabled = false;
+            public void ToggleHighlight() => highlight.enabled = !highlight.enabled;
+
+            private void SetEnabled(bool value)
+            {
+                gameObject.SetActive(value);
+                if (!value) highlight.enabled = value;
+            }
+
+            private void OnSettingsChanged(Settings settings)
+            {
+                textObject.color = settings.theme.textSecondary;
+                highlight.color = settings.theme.surface;
             }
         }
-
-        public List<int> GetNotes()
-        {
-            List<int> activeNotes = new List<int>();
-            for (int i = 0; i < notes.Length; i++)
-            {
-                if (notes[i].enabled) activeNotes.Add(i + 1);
-            }
-            return activeNotes;
-        }
-
-        public void HighlightNote(int number)
-        {
-            if (!notes[number - 1].enabled) return;
-            noteHighlights[number - 1].enabled = true;
-        }
-
-        public void RemoveNoteHighlights()
-        {
-            foreach (var note in noteHighlights) note.enabled = false;
-        }
-
-        public void SetNoteColor(Color c)
-        {
-            foreach (var image in noteHighlights)
-            {
-                image.color = c;
-            }
-        }
-
-        public void SetMainTextColor(Color c) => mainText.color = c;
     }
 }

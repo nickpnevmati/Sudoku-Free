@@ -1,12 +1,19 @@
 using System.Text;
 using UnityEngine;
 
+[System.Serializable]
+public class PuzzleSaveData
+{
+    public string puzzle;
+    public string solution;
+    public string[] history;
+}
+
 public class PuzzleLoader
 {
-    // each puzzle consists of the puzzle and the solution concatenated (plus a newline), a total of 9x9x2+1=163 chars [0-9]
     const int puzzleStringSize = 163;
 
-    public static string savePath => System.IO.Path.Combine(Application.persistentDataPath, "savefile");
+    public static string savePath => System.IO.Path.Combine(Application.persistentDataPath, "savefile.json");
     public static bool hasPreviousSave => System.IO.File.Exists(savePath);
 
     public static (string, string) LoadPuzzle(int index)
@@ -20,21 +27,21 @@ public class PuzzleLoader
         return (puzzle, solution);
     }
 
-    public static (string, string) LoadSaved()
+    public static (string, string, string[]) LoadSaved()
     {
         if (!hasPreviousSave) throw new System.Exception("No previous save file exists");
-        string puzzleString = System.IO.File.ReadAllText(savePath);
-
-        char[] puzzle = new char[81];
-        char[] solution = new char[81];
-
-        puzzleString.CopyTo(0, puzzle, 0, 81);
-        puzzleString.CopyTo(81, solution, 0, 81);
-
-        return (new string(puzzle), new string(solution));
+        string json = System.IO.File.ReadAllText(savePath);
+        PuzzleSaveData data = JsonUtility.FromJson<PuzzleSaveData>(json);
+        return (data.puzzle, data.solution, data.history);
     }
 
-    public static void SavePuzzle(string puzzle, string solution) => System.IO.File.WriteAllText(savePath, puzzle + solution);
+    public static void SavePuzzle(string puzzle, string solution, string[] pastStates)
+    {
+        PuzzleSaveData data = new PuzzleSaveData { puzzle = puzzle, solution = solution, history = pastStates };
+        string json = JsonUtility.ToJson(data);
+        System.IO.File.WriteAllText(savePath, json);
+    }
+
     public static void DeleteSave()
     {
         if (!hasPreviousSave) return;

@@ -1,6 +1,4 @@
-using System;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class SudokuGridShaderController : MonoBehaviour
 {
@@ -9,6 +7,10 @@ public class SudokuGridShaderController : MonoBehaviour
     float[] highlighedCells = null;
 
     private const int ARRAY_SIZE = 81; // This MUST match the shader
+
+    public Color primaryColor { set { gridMaterial.SetColor("_BaseColor", value); } }
+    public Color secondaryColor { set { gridMaterial.SetColor("_HighlightColor", value); }}
+    public Color backgroundColor {set { gridMaterial.SetColor("_BackgroundColor", value); }}
 
     void Start()
     {

@@ -29,7 +29,7 @@ public class MainMenuController : AWindowController
         CheckContinue();
     }
 
-    private void CheckContinue() => continueButton.gameObject.SetActive(GameWindowController.instance.hasPreviousSave);
+    private void CheckContinue() => continueButton.gameObject.SetActive(PuzzleLoader.hasPreviousSave);
 
     private void PlayButtonClicked() => Signals.Get<PlayButtonClickedSignal>().Dispatch();
     private void ContinueButtonClicked() => Signals.Get<ContinueGameSignal>().Dispatch();
