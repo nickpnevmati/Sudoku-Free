@@ -82,7 +82,15 @@ public class SudokuGridController : MonoBehaviour
         }
     }
 
-    public void SetNumber(int? number, int index) => cells[index].number = number;
+    public void SetNumber(int? number, int index)
+    {
+        cells[index].number = number;
+        if (number == null) return;
+
+        cells[index].ClearNotes();
+        foreach (int idx in CellRCG(index))
+            cells[idx].RemoveNote((int) number);
+    }
     public int? GetNumber(int index) => cells[index].number;
     public void SetError(int index, bool error) => cells[index].SetError(error);
     public void SetNote(int number, int index) => cells[index].AddNote(number);
@@ -326,7 +334,7 @@ public class SudokuGridController : MonoBehaviour
             private void OnSettingsChanged(Settings settings)
             {
                 textObject.color = settings.theme.textSecondary;
-                highlight.color = settings.theme.surface;
+                highlight.color = settings.theme.secondary;
             }
         }
     }
