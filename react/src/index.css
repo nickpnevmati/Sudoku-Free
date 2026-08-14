@@ -1,0 +1,96 @@
+/* ---------- design tokens (light) ---------- */
+
+:root {
+    font-size: 48px;
+
+    --bg: #f4f6fb;
+    --bg-glow: #ffffff;
+
+    --surface: #ffffff;
+    --surface-hi: #eef1f8;
+    --surface-press: #e2e7f2;
+
+    --border: #d7dce8;
+    --border-hi: #b3bcd2;
+
+    --text: #1b2135;
+    --text-dim: #6b7490;
+
+    --accent: #4f5ede;
+    --accent-hi: #6b78ec;
+    --accent-press: #3d4ac4;
+
+    --danger: #d94459;
+
+    --radius-sm: 10px;
+    --radius: 18px;
+    --radius-lg: 30px;
+
+    --shadow: 0px 2px 6px #1b213520;
+    --shadow-lg: 0px 14px 36px #1b21352e;
+    --shadow-accent: 0px 6px 18px #4f5ede4d;
+
+    color: var(--text);
+    font-weight: 500;
+}
+
+/* ---------- app shell ---------- */
+
+.root {
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+
+    background-color: var(--bg);
+    background-image: linear-gradient(160deg, var(--bg-glow) 0%, var(--bg) 60%);
+}
+
+/* ---------- shared menu column ---------- */
+/* used by MainMenu and GameMenu via a global class name */
+
+.buttons_container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
+    align-self: center;
+
+    width: 62%;
+    height: 100%;
+
+    row-gap: 22px;
+}
+
+/* ---------- optional dark palette ---------- */
+/* add this class alongside `root` in App.tsx to switch back:
+   <div className='root theme_dark'>                        */
+
+.theme_dark {
+    --bg: #0f1117;
+    --bg-glow: #1a1f36;
+
+    --surface: #1c2030;
+    --surface-hi: #262c42;
+    --surface-press: #161a28;
+
+    --border: #333a52;
+    --border-hi: #4a5479;
+
+    --text: #eceef7;
+    --text-dim: #929ab6;
+
+    --accent: #6c7cf0;
+    --accent-hi: #8b97ff;
+    --accent-press: #5666d8;
+
+    --danger: #ef5f74;
+
+    --shadow: 0px 6px 18px #00000073;
+    --shadow-lg: 0px 18px 48px #000000a6;
+    --shadow-accent: 0px 8px 22px #6c7cf055;
+
+    color: var(--text);
+}

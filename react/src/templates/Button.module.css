@@ -1,0 +1,47 @@
+.button {
+    box-sizing: border-box;
+
+    justify-content: center;
+    text-align: center;
+
+    padding: 18px 26px;
+
+    color: var(--text);
+    background-color: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+
+    letter-spacing: 1px;
+
+    transition: background-color 0.14s ease-out, border-color 0.14s ease-out, scale 0.14s ease-out;
+}
+
+.button:hover {
+    background-color: var(--surface-hi);
+    border-color: var(--border-hi);
+}
+
+.button:active {
+    background-color: var(--surface-press);
+    border-color: var(--border-hi);
+    scale: 0.97;
+}
+
+/* toggle in the "on" state */
+.active {
+    color: #ffffff;
+    background-color: var(--accent);
+    border-color: var(--accent-hi);
+    box-shadow: var(--shadow-accent);
+}
+
+.active:hover {
+    background-color: var(--accent-hi);
+    border-color: var(--accent-hi);
+}
+
+.active:active {
+    background-color: var(--accent-press);
+    scale: 0.97;
+}

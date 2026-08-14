@@ -9,15 +9,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ff8ee9dbc4a03322895ef90eb54e7a41, type: 3}
+  m_Script: {fileID: 11500000, guid: a8107b232e8d826039b3b9bff58afdd5, type: 3}
   m_Name: LightTheme
-  m_EditorClassIdentifier: 
-  primary: {r: 0.14509805, g: 0.3882353, b: 0.92156863, a: 1}
-  secondary: {r: 0.5764706, g: 0.2, b: 0.91764706, a: 1}
-  background: {r: 1, g: 1, b: 1, a: 1}
-  surface: {r: 0.96862745, g: 0.96862745, b: 0.972549, a: 1}
-  textPrimary: {r: 0.06666667, g: 0.09411765, b: 0.15294118, a: 1}
-  textSecondary: {r: 0.41960785, g: 0.44705883, b: 0.5019608, a: 1}
-  border: {r: 0.8980392, g: 0.90588236, b: 0.92156863, a: 1}
-  success: {r: 0.08627451, g: 0.6392157, b: 0.2901961, a: 1}
-  error: {r: 0.8627451, g: 0.14901961, b: 0.14901961, a: 1}
+  m_EditorClassIdentifier:
+  gridBase: {r: 0.565, g: 0.600, b: 0.722, a: 1}
+  gridHighlight: {r: 0.875, g: 0.890, b: 0.984, a: 1}
+  gridBackground: {r: 1, g: 1, b: 1, a: 1}
+  cellText: {r: 0.106, g: 0.129, b: 0.208, a: 1}
+  cellTextError: {r: 0.851, g: 0.267, b: 0.349, a: 1}
+  noteText: {r: 0.290, g: 0.325, b: 0.447, a: 1}
+  noteHighlight: {r: 0.725, g: 0.761, b: 0.969, a: 1}

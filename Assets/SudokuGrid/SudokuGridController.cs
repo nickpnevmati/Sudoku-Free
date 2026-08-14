@@ -2,7 +2,6 @@ using TMPro;
 using System;
 using UnityEngine;
 using System.Linq;
-using deVoid.Utils;
 using UnityEngine.UI;
 using System.Collections.Generic;
 
@@ -30,9 +29,21 @@ public class SudokuGridController : MonoBehaviour
         }
 
         _onCellClicked += OnPreCellClicked;
-        _onCellClicked += onCellClicked.Invoke;
+        _onCellClicked += i => onCellClicked?.Invoke(i);
+    }
 
-        Signals.Get<OnSettingsChangedSignal>().AddListener(OnSettingsChanged);
+    void Start()
+    {
+        if (SettingsManager.instance != null)
+            SettingsManager.instance.Subscribe(OnSettingsChanged);
+    }
+
+    void OnDestroy()
+    {
+        // React destroys and re-instantiates this prefab on every screen switch, so an
+        // unsubscribe is required or each mount leaves another dead listener behind.
+        if (SettingsManager.instance != null)
+            SettingsManager.instance.Unsubscribe(OnSettingsChanged);
     }
 
     public void ConstructGrid(string puzzle)
@@ -201,9 +212,16 @@ public class SudokuGridController : MonoBehaviour
 
     private void OnSettingsChanged(Settings settings)
     {
-        shaderController.primaryColor = settings.theme.primary;
-        shaderController.secondaryColor = settings.theme.secondary;
-        shaderController.backgroundColor = settings.theme.border;
+        var theme = settings?.boardTheme;
+        if (theme == null) return;
+
+        shaderController.primaryColor = theme.gridBase;
+        shaderController.secondaryColor = theme.gridHighlight;
+        shaderController.backgroundColor = theme.gridBackground;
+
+        // Cell is a struct: index into the array so the theme lands on the stored
+        // element. A foreach would hand out copies and the colour fields would be lost.
+        for (int i = 0; i < cells.Length; i++) cells[i].ApplyTheme(theme);
     }
 
     private IEnumerable<int> CellRCG(int index)
@@ -271,8 +289,6 @@ public class SudokuGridController : MonoBehaviour
             button = cell.GetComponentInChildren<Button>();
             int cellIndex = int.Parse(cell.name.Split('.')[1]) - 1;
             button.onClick.AddListener(delegate { controller._onCellClicked.Invoke(cellIndex); });
-
-            Signals.Get<OnSettingsChangedSignal>().AddListener(OnSettingsChanged);
         }
 
         public void SetError(bool error) => mainText.color = error ? errorColor : mainTextColor;
@@ -294,10 +310,17 @@ public class SudokuGridController : MonoBehaviour
         private int? GetCellNumber() => mainText.text == "" ? null : int.Parse(mainText.text);
         private void SetCellNumber(int? value) => mainText.text = value == null ? "" : value.ToString();
 
-        private void OnSettingsChanged(Settings settings)
+        public void ApplyTheme(BoardThemeSO theme)
         {
-            mainTextColor = settings.theme.textPrimary;
-            errorColor = settings.theme.error;
+            mainTextColor = theme.cellText;
+            errorColor = theme.cellTextError;
+
+            // Repaint now rather than waiting for the next SetError call, otherwise the
+            // number keeps whatever colour it already had until its correctness changes.
+            mainText.color = mainTextColor;
+
+            // Note is a struct too - index, don't foreach.
+            for (int i = 0; i < notes.Length; i++) notes[i].ApplyTheme(theme);
         }
 
         struct Note
@@ -314,8 +337,6 @@ public class SudokuGridController : MonoBehaviour
                 textObject = transform.GetComponentInChildren<TMP_Text>();
                 textObject.text = transform.name.Split(".")[1];
                 highlight = transform.GetComponentInChildren<Image>();
-
-                Signals.Get<OnSettingsChangedSignal>().AddListener(OnSettingsChanged);
             }
 
             public void Set() => SetEnabled(true);
@@ -331,10 +352,10 @@ public class SudokuGridController : MonoBehaviour
                 if (!value) highlight.enabled = value;
             }
 
-            private void OnSettingsChanged(Settings settings)
+            public void ApplyTheme(BoardThemeSO theme)
             {
-                textObject.color = settings.theme.textSecondary;
-                highlight.color = settings.theme.secondary;
+                textObject.color = theme.noteText;
+                highlight.color = theme.noteHighlight;
             }
         }
     }

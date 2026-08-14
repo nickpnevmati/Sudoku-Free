@@ -29,6 +29,7 @@ public class PuzzleLoader
 
     public static (string, string, string[]) LoadSaved()
     {
+        Debug.Log(savePath);
         if (!hasPreviousSave) throw new System.Exception("No previous save file exists");
         string json = System.IO.File.ReadAllText(savePath);
         PuzzleSaveData data = JsonUtility.FromJson<PuzzleSaveData>(json);
@@ -37,6 +38,7 @@ public class PuzzleLoader
 
     public static void SavePuzzle(string puzzle, string solution, string[] pastStates)
     {
+        Debug.Log("PuzzleLoader - SavePuzzle");
         PuzzleSaveData data = new PuzzleSaveData { puzzle = puzzle, solution = solution, history = pastStates };
         string json = JsonUtility.ToJson(data);
         System.IO.File.WriteAllText(savePath, json);

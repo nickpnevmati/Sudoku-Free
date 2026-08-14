@@ -1,0 +1,19 @@
+{
+  "extends": "@reactunity/scripts",
+  "compilerOptions": {
+    "ignoreDeprecations": "6.0",
+    "baseUrl": "./",
+    "jsxImportSource": "@reactunity/renderer/ugui",
+    "types": [
+      "@reactunity/scripts/main"
+    ]
+  },
+  "files": [
+    "./src/index.tsx",
+    "./src/global.d.ts"
+  ],
+  "include": [
+    "./src",
+    "./src/**/*"
+  ]
+}

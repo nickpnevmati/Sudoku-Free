@@ -1,101 +1,114 @@
+using System;
 using UnityEngine;
-using deVoid.Utils;
-using UnityEngine.UI;
+using ReactUnity.UGUI;
 
-public class OnSettingsChangedSignal : ASignal<Settings> { }
-
+[RequireComponent(typeof(ReactRendererUGUI))]
 public class SettingsManager : MonoBehaviour
 {
-    [SerializeField] private ThemeSO darkTheme, lightTheme;
-    [SerializeField] private Image backgroundImage;
+    [SerializeField] private BoardThemeSO darkBoardTheme;
+    [SerializeField] private BoardThemeSO lightBoardTheme;
 
     public static SettingsManager instance;
+    private Action<Settings> onSettingsChanged;
 
-    public ThemeSO theme
-    {
-        set
-        {
-            settings.theme = value;
-            TriggerUpdate();
-        }
-        get { return settings.theme; }
-    }
-
-    public bool isDarkTheme { get { return theme == darkTheme; } }
-
-    public bool checkErrors
-    {
-        set
-        {
-            settings.checkErrors = value;
-            TriggerUpdate();
-        }
-        get { return settings.checkErrors; }
-    }
-
-    public bool disableQuicknote
-    {
-        set
-        {
-            settings.disableQuicknote = value;
-            TriggerUpdate();
-        }
-        get { return settings.disableQuicknote; }
-    }
+    private ReactRendererUGUI react;
 
     private Settings settings;
 
-    private void Awake()
+    private BoardThemeSO ActiveBoardTheme => settings.darkTheme ? darkBoardTheme : lightBoardTheme;
+
+    void Awake()
     {
+        if (instance)
+        {
+            Destroy(gameObject);
+            return;
+        }
         instance = this;
-        settings = new Settings();
-        settings.checkErrors = PlayerPrefBool.GetBool(SettingsKeys.checkErrors, true);
-        settings.disableQuicknote = PlayerPrefBool.GetBool(SettingsKeys.disableQuicknote, false);
-        settings.theme = PlayerPrefBool.GetBool(SettingsKeys.darkTheme, true) ? darkTheme : lightTheme;
 
-        Signals.Get<OnSettingsChangedSignal>().AddListener(SetBackground);
+        react = GetComponent<ReactRendererUGUI>();
+
+        react.Globals["changeSetting"] = (Action<string, object>)ChangeSetting;
+        ReadSettings();
     }
 
-    private void OnDestroy()
+    private void ChangeSetting(string key, object value)
     {
-        Signals.Get<OnSettingsChangedSignal>().RemoveListener(SetBackground);
-    }
-
-    private void Start()
-    {
-        TriggerUpdate();
-    }
-
-    private void TriggerUpdate() => Signals.Get<OnSettingsChangedSignal>().Dispatch(settings);
-    private void SetBackground(Settings settings) => backgroundImage.color = settings.theme.background;
-
-    public void ToggleTheme() => theme = theme == darkTheme ? lightTheme : darkTheme;
-
-    private class PlayerPrefBool
-    {
-        public static bool GetBool(string key, bool defaultValue)
+        switch (key)
         {
-            int value = PlayerPrefs.GetInt(key, defaultValue ? 1 : 0);
-            return value != 0;
+            case "darkTheme":
+                settings.darkTheme = Convert.ToBoolean(value);
+                break;
+            case "checkErrors":
+                settings.checkErrors = Convert.ToBoolean(value);
+                break;
+            case "disableQuickNote":
+                settings.disableQuickNote = Convert.ToBoolean(value);
+                break;
+            default:
+                return;
         }
 
-        public static void SetBool(string key, bool value)
+        settings.boardTheme = ActiveBoardTheme;
+
+        PlayerPrefs.SetString(key, value.ToString());
+        PlayerPrefs.Save();
+        onSettingsChanged?.Invoke(settings);
+        react.Globals[key] = value;
+    }
+
+    private void ReadSettings()
+    {
+        bool darkTheme = bool.Parse(PrefOrDefault("darkTheme", "false"));
+        bool checkErrors = bool.Parse(PrefOrDefault("checkErrors", "false"));
+        bool disableQuickNote = bool.Parse(PrefOrDefault("disableQuickNote", "false"));
+        
+        settings = new Settings
         {
-            PlayerPrefs.SetInt(key, value ? 1 : 0);
-        }
+            darkTheme = darkTheme,
+            checkErrors = checkErrors,
+            disableQuickNote = disableQuickNote,
+        };
+        settings.boardTheme = ActiveBoardTheme;
+
+        react.Globals["darkTheme"] = settings.darkTheme;
+        react.Globals["checkErrors"] = settings.checkErrors;
+        react.Globals["disableQuickNote"] = settings.disableQuickNote;
+    }
+
+    /// <summary>
+    /// Subscribers are invoked immediately with the current settings. The board prefab is
+    /// instantiated by React long after Awake, so without this replay it would never see a
+    /// theme until the user happened to toggle one.
+    /// </summary>
+    public void Subscribe(Action<Settings> callback)
+    {
+        onSettingsChanged += callback;
+        callback?.Invoke(settings);
+    }
+
+    public void Unsubscribe(Action<Settings> callback) => onSettingsChanged -= callback;
+
+    void OnDestroy()
+    {
+        onSettingsChanged = null;
+        if (instance == this) instance = null;
+    }
+
+    private string PrefOrDefault(string key, string defaultValue)
+    {
+        string value = PlayerPrefs.GetString(key);
+        if (value.Length == 0) return defaultValue;
+        return value;
     }
 }
 
 public class Settings
 {
-    public ThemeSO theme;
-    public bool checkErrors, disableQuicknote;
-}
+    public bool darkTheme;
+    public bool checkErrors;
+    public bool disableQuickNote;
 
-public class SettingsKeys
-{
-    public const string checkErrors = "check_errors";
-    public const string disableQuicknote = "disable_quicknote";
-    public const string backgroundColor = "background_color";
-    public const string darkTheme = "dark_theme";
+    /// <summary>Colours for the board itself. Set by SettingsManager from darkTheme.</summary>
+    public BoardThemeSO boardTheme;
 }
