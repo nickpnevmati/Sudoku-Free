@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import Modal from "src/templates/Modal";
 import { RootState } from "src/store";
 import { useDispatch, useSelector } from "react-redux";
-import { setContinue } from "src/slices/difficultySlice";
+import { setContinue } from "src/slices/flagsSlice";
 import { commands, settings, screenKeys, useBridge } from "src/bridge";
 
 export default function GameScreen() {

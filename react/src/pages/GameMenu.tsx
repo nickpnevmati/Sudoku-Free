@@ -1,6 +1,6 @@
 import { useDispatch } from "react-redux"
 import Button from "src/templates/Button"
-import { setDifficulty } from "src/slices/difficultySlice";
+import { setDifficulty } from "src/slices/flagsSlice";
 import { screenKeys, useBridge } from "src/bridge";
 
 export default function GameMenu() {

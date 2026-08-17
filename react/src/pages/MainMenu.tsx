@@ -1,6 +1,6 @@
 import Button from "src/templates/Button"
 import { useDispatch } from "react-redux";
-import { setContinue } from "src/slices/difficultySlice";
+import { setContinue } from "src/slices/flagsSlice";
 import { screenKeys, useBridge, flags } from "src/bridge";
 
 export default function MainMenu() {
