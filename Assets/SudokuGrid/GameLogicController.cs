@@ -104,7 +104,6 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
         int randomIndex = Mathf.FloorToInt(UnityEngine.Random.Range(0, 100));
         (puzzle, solution) = PuzzleLoader.LoadPuzzle(randomIndex);
         InitializeGame();
-        history.Push(gridController.gridState);
     }
 
     private void ContinueGame()
