@@ -55,11 +55,11 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
             // React loads these on-mount - before the game is initialized
             // meaning that it can fuck with game state in ways that are hard to debug
             // make sure to account for it.
-            case "noteMode": SetNoteMode(Convert.ToBoolean(value)); return true;
-            case "fastMode": SetFastMode(Convert.ToBoolean(value)); return true;
-            case "quickNote": SetQuickNote(Convert.ToBoolean(value)); return true;
-            case "eraseMode": SetEraseMode(Convert.ToBoolean(value)); return true;
-            case "command": RunCommand(Convert.ToString(value)); return true;
+            case PropertyKeys.NoteMode: SetNoteMode(Convert.ToBoolean(value)); return true;
+            case PropertyKeys.FastMode: SetFastMode(Convert.ToBoolean(value)); return true;
+            case PropertyKeys.QuickNote: SetQuickNote(Convert.ToBoolean(value)); return true;
+            case PropertyKeys.EraseMode: SetEraseMode(Convert.ToBoolean(value)); return true;
+            case PropertyKeys.Command: RunCommand(Convert.ToString(value)); return true;
             default: return false;
         }
     }
@@ -90,17 +90,17 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
 
         switch (parts[0])
         {
-            case "numpad": HandleNumpadClicked(int.Parse(parts[1])); break;
-            case "undo": Undo(); break;
-            case "start_game": StartGame(int.Parse(parts[1])); break;
-            case "continue_game": ContinueGame(); break;
-            case "erase": HandleEraseClicked(); break;
+            case Commands.Numpad: HandleNumpadClicked(int.Parse(parts[1])); break;
+            case Commands.Undo: Undo(); break;
+            case Commands.StartGame: StartGame(int.Parse(parts[1])); break;
+            case Commands.ContinueGame: ContinueGame(); break;
+            case Commands.Erase: HandleEraseClicked(); break;
         }
     }
 
     private void StartGame(int difficulty)
     {
-        Debug.Log("Start Game");
+        Debug.Log($"GameLogicController: Start Game - difficulty: {difficulty}");
         int randomIndex = Mathf.FloorToInt(UnityEngine.Random.Range(0, 100));
         (puzzle, solution) = PuzzleLoader.LoadPuzzle(randomIndex);
         InitializeGame();

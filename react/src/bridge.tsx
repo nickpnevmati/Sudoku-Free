@@ -31,11 +31,22 @@ export const flags = {
 
 export const props = {
   'screen': 'screen',
-  'boardPrefab': 'boardPrefab'
+  'boardPrefab': 'boardPrefab',
+
+  // GameLogicController
+  'noteMode': 'noteMode',
+  'fastMode': 'fastMode',
+  'quickNote': 'quickNote',
+  'eraseMode': 'eraseMode',
+  'command': 'command',
 }
 
 export const commands = {
+  'startGame': (difficulty: number) => `start_game:${difficulty}`,
+  'continueGame': 'continue_game',
+  'numpad': (num: number) => `numpad:${num}`,
   'erase': 'erase',
+  'undo': 'undo',
 }
 
 export function useBridge() {

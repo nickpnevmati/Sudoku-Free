@@ -26,7 +26,7 @@ public class SettingsManager : MonoBehaviour
     void Start()
     {
         ReactBridge.Instance.SetGlobal(
-            CommandKeys.ChangeSetting,
+            Commands.ChangeSetting,
             (Action<string, object>)ChangeSetting
         );
         ReadSettings();

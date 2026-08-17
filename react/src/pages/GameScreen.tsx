@@ -29,15 +29,15 @@ export default function GameScreen() {
     const difficulty = useSelector((state: RootState) => state.flagsReducer.difficulty);
     const continueFlag = useSelector((state: RootState) => state.flagsReducer.continueGame);
 
-    const newGame = () => send(`start_game:${difficulty}`);
-    const continueGame = () => send('continue_game');
+    const newGame = () => send(commands.startGame(difficulty));
+    const continueGame = () => send(commands.continueGame);
     const exitGame = () => navigateTo(screenKeys.MainMenu);
 
     const onNumpadClick = (button: number) => {
         setLastNum(button);
-        send(`numpad:${button}`);
+        send(commands.numpad(button));
     }
-    const onUndo = () => send('undo');
+    const onUndo = () => send(commands.undo);
 
     useEffect(() => {
         continueFlag ? continueGame() : newGame();

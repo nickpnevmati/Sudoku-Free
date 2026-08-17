@@ -26,24 +26,17 @@ public class ReactBridge : MonoBehaviour
         Instance = this;
 
         react = GetComponent<ReactRendererUGUI>();
-        react.Globals[CommandKeys.StartGame] = (Action<int>)StartGameWithDifficulty;
-        react.Globals[CommandKeys.ExitGame] = (Action)Application.Quit;
-        react.Globals[CommandKeys.NavigateTo] = (Action<string>)NavigateTo;
-        react.Globals["screen"] = ScreenKeys.MainMenu;
+        react.Globals[Commands.ExitGame] = (Action)Application.Quit;
+        react.Globals[Commands.NavigateTo] = (Action<string>)NavigateTo;
+        react.Globals[PropertyKeys.screen] = ScreenKeys.MainMenu;
 
-        react.Globals["boardPrefab"] = boardPrefab;
+        react.Globals[PropertyKeys.boardPrefab] = boardPrefab;
 
         react.Globals[FlagKeys.hasPreviousSave] = PuzzleLoader.hasPreviousSave;
     }
 
     public void NavigateTo(string screen) => 
-        react.Globals["screen"] = screen;
-
-    public void StartGameWithDifficulty(int difficulty)
-    {
-        react.Globals["screen"] = ScreenKeys.GameScreen;
-        // TODO?
-    }
+        react.Globals[PropertyKeys.screen] = screen;
 
     public void SetGlobal(string key, object value)
     {
@@ -72,10 +65,28 @@ public class SettingsKeys
     public const string disableQuickNote = "disableQuickNote";
 }
 
-public class CommandKeys
+public class Commands
 {
-    public const string StartGame = "startGame";
+    public const string StartGame = "start_game";
+    public const string ContinueGame = "continue_game";
     public const string ExitGame = "exitGame";
     public const string NavigateTo = "navigateTo";
     public const string ChangeSetting = "changeSetting";
+
+    public const string Numpad = "numpad";
+    public const string Undo = "undo";
+    public const string Erase = "erase";
+}
+
+public class PropertyKeys
+{
+    public const string screen = "screen";
+    public const string boardPrefab = "boardPrefab";
+
+    // GameLogicController
+    public const string NoteMode = "noteMode";
+    public const string FastMode = "fastMode";
+    public const string QuickNote = "quickNote";
+    public const string EraseMode = "eraseMode";
+    public const string Command = "command";
 }
