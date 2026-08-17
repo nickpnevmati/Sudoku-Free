@@ -1,12 +1,10 @@
-using UnityEngine;
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 using ReactUnity.UGUI.Behaviours;
 using ReactUnity.Helpers;
 using ReactUnity.UGUI;
-using System;
-using Unity.VisualScripting;
-using System.Collections;
-using ReactUnity;
 
 [RequireComponent(typeof(SudokuGridController))]
 public class GameLogicController : MonoBehaviour, IPrefabTarget
@@ -116,8 +114,6 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
 
         InitializeGame();
 
-        // if (historyArray.Length > 0) // TODO
-        //     quickNoteToggle.SetIsOnWithoutNotify(history.Last.Contains('q'));
         gridController.SetGridState(history.Last);
 
         CorrectnessCheckAll();
@@ -205,7 +201,7 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
 
             if (noteMode)
             {
-                gridController.SetNote((int)selectedNumber, cellIndex);
+                gridController.ToggleNote((int)selectedNumber, cellIndex);
                 gridController.HighlightNumbers((int)selectedNumber);
             }
             else if (eraseMode)
@@ -262,6 +258,7 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
     {
         history = new HStack<string>();
         PuzzleLoader.DeleteSave();
+        ReactBridge.Instance.SetGlobal(FlagKeys.hasPreviousSave, false);
     }
 
     private void Undo()
@@ -285,7 +282,13 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
 
     private void CorrectnessCheck(int number, int cellIndex)
     {
-        bool isCorrect = !checkErrors || solution[cellIndex].ToString() == number.ToString();
+        string cellCorrect = solution[cellIndex].ToString();
+        string actual = number.ToString();
+        
+        bool isCorrect = !checkErrors || cellCorrect.Equals(actual);
+
+        // Debug.Log($"GameLogicController: CorrectnessCheck - cellIndex: {cellIndex} - cellCorrect: {cellCorrect} - actual: {actual} - isCorrect: {isCorrect}");
+
         gridController.SetError(cellIndex, !isCorrect);
     }
 
@@ -294,7 +297,7 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
         string grid = gridController.gridString;
         string fmtGrid = grid.Replace(" ", string.Empty);
         bool isFinished = fmtGrid.Equals(solution);
-        Debug.Log("Finished Check Returned " + isFinished.ToSafeString());
+        Debug.Log($"Finished Check Returned {isFinished}");
         if (isFinished)
         {
             DelayCallback(onGameFinished);

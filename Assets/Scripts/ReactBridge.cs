@@ -54,7 +54,6 @@ public class ScreenKeys
 
 public class FlagKeys
 {
-    public const string continueGame = "continueGame";
     public const string hasPreviousSave = "hasPreviousSave";
 }
 

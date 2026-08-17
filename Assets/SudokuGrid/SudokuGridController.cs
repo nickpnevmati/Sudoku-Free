@@ -48,9 +48,13 @@ public class SudokuGridController : MonoBehaviour
 
     public void ConstructGrid(string puzzle)
     {
-        for (int i = 0; i < puzzle.Length; i++)
+        foreach (Transform cell in transform)
         {
-            cells[i].number = puzzle[i] != '0' ? int.Parse(puzzle[i].ToString()) : null;
+            int cellNumber = int.Parse(cell.name.Split('.')[1]) - 1;
+            cells[cellNumber] = new Cell(cell, this)
+            {
+                number = puzzle[cellNumber] != '0' ? int.Parse(puzzle[cellNumber].ToString()) : null
+            };
         }
     }
 
@@ -100,7 +104,7 @@ public class SudokuGridController : MonoBehaviour
 
         cells[index].ClearNotes();
         foreach (int idx in CellRCG(index))
-            cells[idx].RemoveNote((int) number);
+            cells[idx].RemoveNote((int)number);
     }
     public int? GetNumber(int index) => cells[index].number;
     public void SetError(int index, bool error) => cells[index].SetError(error);
@@ -197,13 +201,7 @@ public class SudokuGridController : MonoBehaviour
         return gridString.Trim();
     }
 
-    public IEnumerable<(int?, int)> EnumerateCells()
-    {
-        for (int i = 0; i < cells.Length; i++)
-        {
-            yield return (cells[i].number, i);
-        }
-    }
+    public IEnumerable<(int?, int)> EnumerateCells() { for (int i = 0; i < cells.Length; i++) yield return (cells[i].number, i); }
 
     private void OnPreCellClicked(int value)
     {
@@ -269,10 +267,14 @@ public class SudokuGridController : MonoBehaviour
 
         private Button button;
 
+        bool error;
+
         public Cell(Transform cell, SudokuGridController controller)
         {
             mainText = cell.GetComponent<TMP_Text>();
             mainText.text = "";
+
+            error = false;
 
             mainTextColor = Color.white;
             errorColor = Color.red;
@@ -291,7 +293,7 @@ public class SudokuGridController : MonoBehaviour
             button.onClick.AddListener(delegate { controller._onCellClicked.Invoke(cellIndex); });
         }
 
-        public void SetError(bool error) => mainText.color = error ? errorColor : mainTextColor;
+        public void SetError(bool error) => this.error = error;
         public void AddNote(int number) => notes[number - 1].Set();
         public void RemoveNote(int number) => notes[number - 1].Unset();
         public void ToggleNote(int number) => notes[number - 1].Toggle();
@@ -317,7 +319,7 @@ public class SudokuGridController : MonoBehaviour
 
             // Repaint now rather than waiting for the next SetError call, otherwise the
             // number keeps whatever colour it already had until its correctness changes.
-            mainText.color = mainTextColor;
+            mainText.color = error ? errorColor : mainTextColor;
 
             // Note is a struct too - index, don't foreach.
             for (int i = 0; i < notes.Length; i++) notes[i].ApplyTheme(theme);

@@ -1,15 +1,5 @@
 import { useGlobals } from "@reactunity/renderer";
-import MainMenu from "./pages/MainMenu";
-import GameMenu from "./pages/GameMenu";
-import GameScreen from "./pages/GameScreen";
-import SettingsPage from "./pages/SettingsPage";
-
-export const screenMapping = {
-  'mainMenu': <MainMenu />,
-  'gameMenu': <GameMenu />,
-  'gameScreen': <GameScreen />,
-  'settings': <SettingsPage />,
-}
+import { useMemo, useRef } from "react";
 
 export const screenKeys = {
   'MainMenu': 'mainMenu',
@@ -25,20 +15,14 @@ export const settings = {
 }
 
 export const flags = {
-  'continueGame': 'continueGame',
   'hasPreviousSave': 'hasPreviousSave',
 }
 
+// Globals keys only. The board's `custom-*` attribute names are not listed here - they are
+// JSX attributes, not globals, and ReactUnityCustomAttributes in global.d.ts type-checks them.
 export const props = {
   'screen': 'screen',
   'boardPrefab': 'boardPrefab',
-
-  // GameLogicController
-  'noteMode': 'noteMode',
-  'fastMode': 'fastMode',
-  'quickNote': 'quickNote',
-  'eraseMode': 'eraseMode',
-  'command': 'command',
 }
 
 export const commands = {
@@ -51,15 +35,25 @@ export const commands = {
 
 export function useBridge() {
   const globals = useGlobals();
-  return {
-    globals,
-    screen: globals[props.screen],
-    boardPrefab: globals[props.boardPrefab],
-    startGame: (difficulty: number) => globals.startGame(difficulty),
-    exitGame: () => globals.exitGame(),
-    navigateTo: (screen: string) => globals.navigateTo(screen),
-    changeSettings: (action: string, value: unknown) => globals.changeSetting(action, value),
-    setGlobal: (key: string, value: unknown) => globals[key] = value,
-    getGlobal: (key: string) => globals[key],
-  };
+
+  // useGlobals() builds a fresh Proxy on every render, so anything closing over it directly
+  // is a new reference every time. Keep the newest proxy in a ref and route the calls through
+  // it: the functions below can then be created once and still read current values.
+  const latest = useRef(globals);
+  latest.current = globals;
+
+  const api = useMemo(() => ({
+    exitGame: () => latest.current.exitGame(),
+    navigateTo: (screen: string) => latest.current.navigateTo(screen),
+    changeSettings: (action: string, value: unknown) => latest.current.changeSetting(action, value),
+    setGlobal: (key: string, value: unknown) => { latest.current[key] = value; },
+    getGlobal: (key: string) => latest.current[key],
+  }), []);
+
+  // Read during render, not inside the memo: the proxy's get trap is what subscribes this
+  // component to a global, and these two drive re-renders.
+  const screen = globals[props.screen];
+  const boardPrefab = globals[props.boardPrefab];
+
+  return useMemo(() => ({ screen, boardPrefab, ...api }), [screen, boardPrefab, api]);
 }

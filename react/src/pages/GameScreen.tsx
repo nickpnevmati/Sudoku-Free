@@ -39,9 +39,17 @@ export default function GameScreen() {
     }
     const onUndo = () => send(commands.undo);
 
+    // Deliberately mount-once: this deals the puzzle. The ref guard is what enforces that,
+    // not the empty dep array - so a re-run (StrictMode double-invoke, a hot reload, a future
+    // dep being added) can't deal a second puzzle over the top of the one in play.
+    const dealt = useRef(false);
     useEffect(() => {
+        if (dealt.current) return;
+        dealt.current = true;
+
         continueFlag ? continueGame() : newGame();
         dispatch(setContinue(false));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     // ----- Events ----- 
@@ -61,7 +69,7 @@ export default function GameScreen() {
     function handleEraseClicked(_?: boolean) {
         if (fastMode) {
             setNoteMode(false);
-            setEraseMode(true);
+            setEraseMode(!eraseMode);
             return;
         }
 
