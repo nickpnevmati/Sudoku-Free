@@ -1,8 +1,6 @@
 using System;
 using UnityEngine;
-using ReactUnity.UGUI;
 
-[RequireComponent(typeof(ReactRendererUGUI))]
 public class SettingsManager : MonoBehaviour
 {
     [SerializeField] private BoardThemeSO darkBoardTheme;
@@ -11,9 +9,7 @@ public class SettingsManager : MonoBehaviour
     public static SettingsManager instance;
     private Action<Settings> onSettingsChanged;
 
-    private ReactRendererUGUI react;
-
-    private Settings settings;
+    private Settings settings = new Settings();
 
     private BoardThemeSO ActiveBoardTheme => settings.darkTheme ? darkBoardTheme : lightBoardTheme;
 
@@ -25,10 +21,14 @@ public class SettingsManager : MonoBehaviour
             return;
         }
         instance = this;
+    }
 
-        react = GetComponent<ReactRendererUGUI>();
-
-        react.Globals["changeSetting"] = (Action<string, object>)ChangeSetting;
+    void Start()
+    {
+        ReactBridge.Instance.SetGlobal(
+            CommandKeys.ChangeSetting,
+            (Action<string, object>)ChangeSetting
+        );
         ReadSettings();
     }
 
@@ -36,13 +36,13 @@ public class SettingsManager : MonoBehaviour
     {
         switch (key)
         {
-            case "darkTheme":
+            case SettingsKeys.darkTheme:
                 settings.darkTheme = Convert.ToBoolean(value);
                 break;
-            case "checkErrors":
+            case SettingsKeys.checkErrors:
                 settings.checkErrors = Convert.ToBoolean(value);
                 break;
-            case "disableQuickNote":
+            case SettingsKeys.disableQuickNote:
                 settings.disableQuickNote = Convert.ToBoolean(value);
                 break;
             default:
@@ -54,26 +54,26 @@ public class SettingsManager : MonoBehaviour
         PlayerPrefs.SetString(key, value.ToString());
         PlayerPrefs.Save();
         onSettingsChanged?.Invoke(settings);
-        react.Globals[key] = value;
+        ReactBridge.Instance.SetGlobal(key, value);
     }
 
     private void ReadSettings()
     {
-        bool darkTheme = bool.Parse(PrefOrDefault("darkTheme", "false"));
-        bool checkErrors = bool.Parse(PrefOrDefault("checkErrors", "false"));
-        bool disableQuickNote = bool.Parse(PrefOrDefault("disableQuickNote", "false"));
-        
+        bool darkTheme = bool.Parse(PrefOrDefault(SettingsKeys.darkTheme, "false"));
+        bool checkErrors = bool.Parse(PrefOrDefault(SettingsKeys.checkErrors, "false"));
+        bool disableQuickNote = bool.Parse(PrefOrDefault(SettingsKeys.disableQuickNote, "false"));
+
         settings = new Settings
         {
             darkTheme = darkTheme,
             checkErrors = checkErrors,
             disableQuickNote = disableQuickNote,
+            boardTheme = darkTheme ? darkBoardTheme : lightBoardTheme,
         };
-        settings.boardTheme = ActiveBoardTheme;
 
-        react.Globals["darkTheme"] = settings.darkTheme;
-        react.Globals["checkErrors"] = settings.checkErrors;
-        react.Globals["disableQuickNote"] = settings.disableQuickNote;
+        ReactBridge.Instance.SetGlobal(SettingsKeys.darkTheme, settings.darkTheme);
+        ReactBridge.Instance.SetGlobal(SettingsKeys.checkErrors, settings.checkErrors);
+        ReactBridge.Instance.SetGlobal(SettingsKeys.disableQuickNote, settings.disableQuickNote);
     }
 
     /// <summary>

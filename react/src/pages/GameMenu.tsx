@@ -1,16 +1,15 @@
 import { useDispatch } from "react-redux"
 import Button from "src/templates/Button"
 import { setDifficulty } from "src/slices/difficultySlice";
-import { useGlobals } from "@reactunity/renderer";
-import { screens } from "src/App";
+import { screenKeys, useBridge } from "src/bridge";
 
 export default function GameMenu() {
-    const globals = useGlobals();
     const dispatch = useDispatch();
+    const { navigateTo } = useBridge();
 
     const startGame = (difficulty: number) => {
         dispatch(setDifficulty(difficulty));
-        globals.navigateTo(screens.GameScreen);
+        navigateTo(screenKeys.GameScreen);
     }
 
     return (
@@ -18,7 +17,7 @@ export default function GameMenu() {
             <Button onClick={() => startGame(0)} text="Easy" />
             <Button onClick={() => startGame(1)} text="Medium" />
             <Button onClick={() => startGame(2)} text="Hard" />
-            <Button onClick={() => globals.navigateTo(screens.MainMenu)} text="Back" />
+            <Button onClick={() => navigateTo(screenKeys.MainMenu)} text="Back" />
         </div>
     )
 }

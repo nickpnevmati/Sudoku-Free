@@ -10,10 +10,13 @@ interface ButtonProps {
     onClick: (status?: boolean) => void,
     text: string,
     type?: ButtonType,
+    toggleStatus?: boolean,
 }
 
-export default function Button({ onClick, text, type = ButtonType.Button }: ButtonProps) {
-    const [toggleStatus, setToggleStatus] = useState(false);
+export default function Button({ onClick, text, type = ButtonType.Button, toggleStatus = undefined }: ButtonProps) {
+    const [toggleStatusInternal, setToggleStatusInternal] = useState(false);
+
+    const status = toggleStatus ?? toggleStatusInternal;
 
     function handleClick() {
         switch (type) {
@@ -21,8 +24,8 @@ export default function Button({ onClick, text, type = ButtonType.Button }: Butt
                 onClick();
                 break;
             case ButtonType.Toggle:
-                onClick(!toggleStatus);
-                setToggleStatus(!toggleStatus);
+                onClick(!status);
+                setToggleStatusInternal(!status);
                 break;
         }
     }
@@ -32,7 +35,7 @@ export default function Button({ onClick, text, type = ButtonType.Button }: Butt
             onClick={handleClick}
             className={[
                 styles.button,
-                type === ButtonType.Toggle && toggleStatus && styles.active,
+                type === ButtonType.Toggle && status && styles.active,
             ].filter(Boolean).join(' ')}
         >
             {text}

@@ -1,24 +1,24 @@
-import { useGlobals } from "@reactunity/renderer"
-import { screens } from "src/App";
 import Button from "src/templates/Button";
 import { ButtonType } from "src/templates/Button";
 import styles from './GameScreen.module.css'
 import { useEffect, useRef, useState } from "react";
 import Modal from "src/templates/Modal";
 import { RootState } from "src/store";
-import { settings } from "./SettingsPage";
-
 import { useDispatch, useSelector } from "react-redux";
 import { setContinue } from "src/slices/difficultySlice";
+import { commands, settings, screenKeys, useBridge } from "src/bridge";
 
 export default function GameScreen() {
-    const globals = useGlobals();
+    const { getGlobal, navigateTo, boardPrefab } = useBridge();
     const dispatch = useDispatch();
     
     const [fastMode, setFastMode] = useState(false);
     const [lastNum, setLastNum] = useState(0);
-    const [noteMode, SetNoteMode] = useState(false);
+    const [noteMode, setNoteMode] = useState(false);
     const [quickNote, setQuickNote] = useState(false);
+    const [eraseMode, setEraseMode] = useState(false);
+
+    // Command Stuff
     const [cmd, setCmd] = useState('');
     const seq = useRef(0);
     const send = (c: string) => setCmd(`${c}:${seq.current++}`);
@@ -31,7 +31,7 @@ export default function GameScreen() {
 
     const newGame = () => send(`start_game:${difficulty}`);
     const continueGame = () => send('continue_game');
-    const exitGame = () => globals.navigateTo(screens.MainMenu);
+    const exitGame = () => navigateTo(screenKeys.MainMenu);
 
     const onNumpadClick = (button: number) => {
         setLastNum(button);
@@ -46,17 +46,35 @@ export default function GameScreen() {
 
     // ----- Events ----- 
     function onGameFinished() {
+        console.log("React: onGameFinished");
         setGameOver(true);
     }
 
-    function onCellSelected() {
-
+    
+    function onCellSelected(num: number | null) {
+        if (!num) return;
+        setLastNum(num);
     }
 
-    function onExitRequested() {
-
-    }
     // ----- Events ----- 
+
+    function handleEraseClicked(_?: boolean) {
+        if (fastMode) {
+            setNoteMode(false);
+            setEraseMode(true);
+            return;
+        }
+
+        send(commands.erase);
+    }
+
+    function handleNoteClicked() {
+        if (fastMode) {
+            setEraseMode(false);
+        }
+
+        setNoteMode(!noteMode);
+    }
 
     function createNumpad() {
         const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -69,7 +87,10 @@ export default function GameScreen() {
                             id={key}
                             key={key}
                             onClick={() => { onNumpadClick(num) }}
-                            style={{ backgroundColor: fastMode && lastNum === num ? 'red' : undefined }}
+                            className={[
+                                styles.numpad_key,
+                                fastMode && lastNum === num && styles.numpad_key_selected,
+                            ].filter(Boolean).join(' ')}
                         >
                             {num}
                         </div>
@@ -88,13 +109,13 @@ export default function GameScreen() {
 
             <prefab
                 className={styles.board_prefab}
-                target={globals.boardPrefab}
+                target={boardPrefab}
                 custom-command={cmd}
                 custom-noteMode={noteMode}
                 custom-fastMode={fastMode}
+                custom-eraseMode={eraseMode}
                 custom-quickNote={quickNote}
                 onCellSelected={onCellSelected}
-                onExitRequested={onExitRequested}
                 onGameFinished={onGameFinished}
             />
 
@@ -103,12 +124,12 @@ export default function GameScreen() {
 
                 <div className={styles.mode_buttons}>
                     <Button onClick={setFastMode} text="Fast Mode" type={ButtonType.Toggle} />
-                    <Button onClick={SetNoteMode} text="Note" type={ButtonType.Toggle} />
+                    <Button onClick={handleNoteClicked} text="Note" type={ButtonType.Toggle} toggleStatus={!eraseMode && noteMode} />
                     {
-                        !globals[settings.disableQuickNote] &&
+                        !getGlobal(settings.disableQuickNote) &&
                         <Button onClick={setQuickNote} text="Quick Note" type={ButtonType.Toggle} />
                     }
-                    <Button onClick={() => send('erase')} text="Eraser" type={fastMode ? ButtonType.Toggle : ButtonType.Button}/>
+                    <Button onClick={handleEraseClicked} text="Eraser" type={fastMode ? ButtonType.Toggle : ButtonType.Button} toggleStatus={eraseMode} />
                 </div>
             </div>
 
@@ -130,11 +151,11 @@ export default function GameScreen() {
                 text="Game Complete! Would you like to play again?"
                 primaryAction={{
                     text: "Yes!",
-                    onClick: newGame
+                    onClick: () => { setGameOver(false); newGame(); }
                 }}
                 secondaryAction={{
                     text: "No",
-                    onClick: exitGame
+                    onClick: () => { setGameOver(false); exitGame(); }
                 }}
             />
         </div>

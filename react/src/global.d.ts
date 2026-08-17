@@ -1,7 +1,6 @@
-declare module '*.css';
-declare const module: { hot?: { accept(dep: string, cb: () => void): void } };
-
 declare global {
+  const module: { hot?: { accept(dep: string, cb: () => void): void } };
+
   interface ReactUnityCustomAttributes {
     'custom-command'?: string;
     'custom-noteMode'?: boolean;

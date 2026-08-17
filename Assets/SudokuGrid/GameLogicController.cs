@@ -4,6 +4,9 @@ using ReactUnity.UGUI.Behaviours;
 using ReactUnity.Helpers;
 using ReactUnity.UGUI;
 using System;
+using Unity.VisualScripting;
+using System.Collections;
+using ReactUnity;
 
 [RequireComponent(typeof(SudokuGridController))]
 public class GameLogicController : MonoBehaviour, IPrefabTarget
@@ -12,17 +15,29 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
 
     private bool fastMode;
     private bool noteMode;
+    private bool eraseMode;
 
     private bool checkErrors;
 
     public int? selectedNumber;
     public int? selectedCell;
 
-    private Callback onCellSelected, onGameFinished, onExitRequested;
+    private Callback onCellSelected, onGameFinished;
     private int lastCommandSeq = -1;
 
     private string puzzle, solution;
     private HStack<string> history = new HStack<string>();
+
+    void DelayCallback(Callback c, params object[] args)
+    {
+        StartCoroutine(DelayCallbackCoroutine(c, args));
+    }
+
+    private IEnumerator DelayCallbackCoroutine(Callback callback, object[] args)
+    {
+        yield return null;
+        callback?.Call(args);
+    }
 
     void Awake()
     {
@@ -43,6 +58,7 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
             case "noteMode": SetNoteMode(Convert.ToBoolean(value)); return true;
             case "fastMode": SetFastMode(Convert.ToBoolean(value)); return true;
             case "quickNote": SetQuickNote(Convert.ToBoolean(value)); return true;
+            case "eraseMode": SetEraseMode(Convert.ToBoolean(value)); return true;
             case "command": RunCommand(Convert.ToString(value)); return true;
             default: return false;
         }
@@ -50,11 +66,11 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
 
     public Action AddEventListener(string eventName, Callback callback)
     {
+        Debug.Log($"AddEventListener: {eventName} handler={callback != null}");
         switch (eventName)
         {
             case "onCellSelected": onCellSelected = callback; return () => onCellSelected = null;
             case "onGameFinished": onGameFinished = callback; return () => onGameFinished = null;
-            case "onExitRequested": onExitRequested = callback; return () => onExitRequested = null;
             default: return null;
         }
     }
@@ -78,7 +94,7 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
             case "undo": Undo(); break;
             case "start_game": StartGame(int.Parse(parts[1])); break;
             case "continue_game": ContinueGame(); break;
-            case "erase": break;
+            case "erase": HandleEraseClicked(); break;
         }
     }
 
@@ -106,6 +122,7 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
         gridController.SetGridState(history.Last);
 
         CorrectnessCheckAll();
+        FinishedCheck();
     }
 
     private void InitializeGame()
@@ -121,12 +138,13 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
     private void SetFastMode(bool value)
     {
         fastMode = value;
-        // numpad.SetToggleMode(value);
 
         if (value)
         {
-            int number = selectedCell != null && gridController.GetNumber((int)selectedCell) != null ? (int)gridController.GetNumber((int)selectedCell) : 1;
-            // numpad.SetActiveToggle(number);
+            bool hasSelectedNumber = selectedCell != null && gridController.GetNumber((int)selectedCell) != null;
+            int number = hasSelectedNumber ? (int)gridController.GetNumber((int)selectedCell) : 1;
+            selectedNumber = number;
+            DelayCallback(onCellSelected, number);
             gridController.HighlightNumbers(number);
         }
     }
@@ -138,6 +156,8 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
         history.Push(gridController.gridState + "q");
         PuzzleLoader.SavePuzzle(puzzle, solution, history.ToArray());
     }
+
+    private void SetEraseMode(bool value) => eraseMode = value;
 
     private void HandleNumpadClicked(int number)
     {
@@ -169,15 +189,17 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
 
     private void HandleCellClicked(int cellIndex)
     {
+        Debug.Log($"GameLogicController: HandleCellClicked - fastMode: {fastMode} - noteMode: {noteMode} - eraseMode: {eraseMode}");
         if (fastMode)
         {
             if (selectedNumber == null) return;
 
             int? number = gridController.GetNumber(cellIndex);
-            if (number != null)
+
+            if (number != null && !eraseMode)
             {
                 gridController.HighlightNumbers((int)number);
-                // numpad.SetActiveToggle((int)number);
+                DelayCallback(onCellSelected, (int)number);
                 selectedNumber = number;
                 return;
             }
@@ -186,6 +208,14 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
             {
                 gridController.SetNote((int)selectedNumber, cellIndex);
                 gridController.HighlightNumbers((int)selectedNumber);
+            }
+            else if (eraseMode)
+            {
+                Debug.Log($"GameLogicController: HandleCellClicked - puzzleAtIndex {puzzle[cellIndex]}");
+                if (puzzle[cellIndex] != '0') return;
+
+                gridController.SetNumber(null, cellIndex);
+                gridController.ClearNotes(cellIndex);
             }
             else
             {
@@ -207,11 +237,32 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
         }
     }
 
+    private void HandleEraseClicked()
+    {
+        Debug.Log($"GameLogicController: HandleEraseClicked - fastMode: {fastMode} - selectedCell: {selectedCell} - puzzleAtIndex: {(selectedCell != null ? puzzle[(int)selectedCell] : "NaN")}");
+        if (fastMode)
+        {
+            eraseMode = !eraseMode;
+            return;
+        }
+
+        if (selectedCell == null || puzzle[(int)selectedCell] != '0') return;
+
+        gridController.SetNumber(null, (int)selectedCell);
+        gridController.ClearNotes((int)selectedCell);
+    }
+
     private void SaveGame()
     {
         history.Push(gridController.gridState);
         PuzzleLoader.SavePuzzle(puzzle, solution, history.ToArray());
         Debug.Log("Game Saved");
+    }
+
+    private void DeleteSave()
+    {
+        history = new HStack<string>();
+        PuzzleLoader.DeleteSave();
     }
 
     private void Undo()
@@ -241,7 +292,15 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
 
     private void FinishedCheck()
     {
-        if (gridController.gridString == solution) onGameFinished.Call();
+        string grid = gridController.gridString;
+        string fmtGrid = grid.Replace(" ", string.Empty);
+        bool isFinished = fmtGrid.Equals(solution);
+        Debug.Log("Finished Check Returned " + isFinished.ToSafeString());
+        if (isFinished)
+        {
+            DelayCallback(onGameFinished);
+            DeleteSave();
+        }
     }
 
     private void OnSettingsChanged(Settings settings)
@@ -257,7 +316,7 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
 
     private class HStack<T>
     {
-        /// <summary>
+        // <summary>
         /// Like a regular stack, only pop() discards the head element, and returns the new head 
         /// Yes, it's stupid, no I don't care ¯\_(ツ)_/¯
         /// </summary>

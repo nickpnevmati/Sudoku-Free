@@ -1,15 +1,8 @@
-import { useGlobals } from "@reactunity/renderer";
 import { ReactNode } from "react";
-import { screens } from "src/App";
+import { screenKeys, settings, useBridge } from "src/bridge";
 import Button from "src/templates/Button";
 import Toggle from "src/templates/Toggle";
 import styles from './SettingsPage.module.css'
-
-export const settings = {
-    'darkTheme': 'darkTheme',
-    'checkErrors': 'checkErrors',
-    'disableQuickNote': 'disableQuickNote'
-}
 
 interface SettingProps {
     title: string,
@@ -30,16 +23,16 @@ function Setting({ title, hint, child }: SettingProps) {
 }
 
 export default function SettingsPage() {
-    const globals = useGlobals();
+    const { getGlobal, navigateTo, changeSettings } = useBridge();
 
-    const darkTheme = globals[settings.darkTheme];
-    const checkErrors = globals[settings.checkErrors];
-    const disableQuickNote = globals[settings.disableQuickNote];
+    const darkTheme = getGlobal(settings.darkTheme);
+    const checkErrors = getGlobal(settings.checkErrors);
+    const disableQuickNote = getGlobal(settings.disableQuickNote);
 
     return (
         <div className={styles.settings_root}>
             <div className={styles.header}>
-                <Button text="Back" onClick={() => globals.navigateTo(screens.MainMenu)} />
+                <Button text="Back" onClick={() => navigateTo(screenKeys.MainMenu)} />
                 <div className={styles.header_title}>Settings</div>
             </div>
 
@@ -50,7 +43,7 @@ export default function SettingsPage() {
                     child={(
                         <Toggle
                             value={darkTheme}
-                            onChange={(value) => globals.changeSetting(settings.darkTheme, value)}
+                            onChange={(value) => changeSettings(settings.darkTheme, value)}
                             offText="Light"
                             onText="Dark"
                         />
@@ -61,7 +54,7 @@ export default function SettingsPage() {
                     hint="When ON, errors will show in red"
                     child={(
                         <Toggle
-                            onChange={(value) => globals.changeSetting(settings.checkErrors, value)}
+                            onChange={(value) => changeSettings(settings.checkErrors, value)}
                             value={checkErrors}
                         />
                     )}
@@ -71,7 +64,7 @@ export default function SettingsPage() {
                     hint="Hides the quicknote button"
                     child={(
                         <Toggle
-                            onChange={(value) => globals.changeSetting(settings.disableQuickNote, value)}
+                            onChange={(value) => changeSettings(settings.disableQuickNote, value)}
                             value={disableQuickNote}
                         />
                     )}
