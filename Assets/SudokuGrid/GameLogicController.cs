@@ -1,10 +1,12 @@
 using System;
+using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using ReactUnity.UGUI.Behaviours;
 using ReactUnity.Helpers;
 using ReactUnity.UGUI;
+using Stopwatch = System.Diagnostics.Stopwatch;
 
 [RequireComponent(typeof(SudokuGridController))]
 public class GameLogicController : MonoBehaviour, IPrefabTarget
@@ -23,8 +25,28 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
     private Callback onCellSelected, onGameFinished;
     private int lastCommandSeq = -1;
 
+    // Timer stuff
+    bool gameStarted = false;
+    float timer = 0;
+    int timerUpdate = 0;
+
     private string puzzle, solution;
     private HStack<string> history = new HStack<string>();
+
+    // MultiThreading Stuff
+    const long puzzle_gen_millis = 500;
+
+    // Immutable, so it can be handed to the main thread by a single reference
+    // swap - no lock, and the Interlocked publish/consume pair is the barrier
+    // that makes the fields visible on the other side.
+    private class GenResult
+    {
+        public string puzzle, solution;
+    }
+
+    private Thread genThread;
+    private CancellationTokenSource genCts;
+    private GenResult pendingResult;
 
     void DelayCallback(Callback c, params object[] args)
     {
@@ -37,12 +59,23 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
         callback?.Call(args);
     }
 
-    void Awake()
+    private void Awake()
     {
         gridController = GetComponent<SudokuGridController>();
         gridController.onCellClicked += HandleCellClicked;
         if (SettingsManager.instance != null)
             SettingsManager.instance.Subscribe(OnSettingsChanged);
+    }
+
+    private void Start()
+    {
+        ReactBridge.Instance.SetGlobal(PropertyKeys.solveTime, -1);
+    }
+
+    void Update()
+    {
+        TryInitializeGame();
+        TryInitializeTimer();
     }
 
     public bool SetProperty(string propertyName, object value)
@@ -64,7 +97,7 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
 
     public Action AddEventListener(string eventName, Callback callback)
     {
-        Debug.Log($"AddEventListener: {eventName} handler={callback != null}");
+        // Debug.Log($"AddEventListener: {eventName} handler={callback != null}");
         switch (eventName)
         {
             case "onCellSelected": onCellSelected = callback; return () => onCellSelected = null;
@@ -98,10 +131,81 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
 
     private void StartGame(int difficulty)
     {
-        Debug.Log($"GameLogicController: Start Game - difficulty: {difficulty}");
-        int randomIndex = Mathf.FloorToInt(UnityEngine.Random.Range(0, 100));
-        (puzzle, solution) = PuzzleLoader.LoadPuzzle(randomIndex);
+        PuzzleDifficulty diff = (PuzzleDifficulty)Math.Clamp(difficulty, (int)PuzzleDifficulty.EASY, (int)PuzzleDifficulty.EVIL);
+
+        // A Thread can only be started once, so each generation gets its own.
+        if (genThread != null && genThread.IsAlive)
+        {
+            Debug.Log("GameLogicController: Start Game ignored - already generating");
+            return;
+        }
+
+        Debug.Log($"GameLogicController: Start Game - difficulty: {diff}");
+
+        Interlocked.Exchange(ref pendingResult, null); // drop a result nobody consumed
+        genCts?.Dispose();
+        genCts = new CancellationTokenSource();
+
+        // Captured, rather than read off the fields, so the worker keeps working
+        // against the token it was started with
+        CancellationToken token = genCts.Token;
+        genThread = new Thread(() => GenerateGameAsync(diff, token))
+        {
+            IsBackground = true, // never keep the process alive on its own
+            Name = "PuzzleGen",
+        };
+        genThread.Start();
+    }
+
+    private void TryInitializeTimer()
+    {
+        if (!gameStarted) return;
+        timer += Time.deltaTime;
+        int timerSec = (int)timer;
+        if (timerSec > timerUpdate)
+        {
+            timerUpdate = timerSec;
+            ReactBridge.Instance.SetGlobal(PropertyKeys.solveTime, timerUpdate.ToString());
+            SaveGame(); // do this here so the timer is saved
+        }
+    }
+
+    private void TryInitializeGame()
+    {
+        // Takes the pending result and clears it in one step, so a puzzle is
+        // never initialized twice.
+        GenResult result = Interlocked.Exchange(ref pendingResult, null);
+        if (result == null) return;
+
+        (puzzle, solution) = (result.puzzle, result.solution);
         InitializeGame();
+    }
+
+    private void GenerateGameAsync(PuzzleDifficulty difficulty, CancellationToken token)
+    {
+        try
+        {
+            var watch = Stopwatch.StartNew();
+
+            var (newPuzzle, newSolution) = PuzzleGenerator.Instance.Generate(difficulty, token);
+
+            // Hold the loading screen for a minimum beat, before handing over -
+            // publishing first would let the main thread start the game early.
+            long sleep = puzzle_gen_millis - watch.ElapsedMilliseconds;
+            if (sleep > 0) Thread.Sleep((int)sleep);
+
+            token.ThrowIfCancellationRequested();
+            Interlocked.Exchange(ref pendingResult, new GenResult { puzzle = newPuzzle, solution = newSolution });
+        }
+        catch (OperationCanceledException)
+        {
+            Debug.Log("GameLogicController: puzzle generation cancelled");
+        }
+        catch (Exception e)
+        {
+            // Otherwise the thread dies silently and the game never starts
+            Debug.LogError($"GameLogicController: puzzle generation failed - {e}");
+        }
     }
 
     private void ContinueGame()
@@ -109,7 +213,9 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
         if (!PuzzleLoader.hasPreviousSave) return;
         Debug.Log("Continue Game");
         string[] historyArray;
-        (puzzle, solution, historyArray) = PuzzleLoader.LoadSaved();
+        // TODO LeadSaved can throw - handle this
+        (puzzle, timerUpdate, solution, historyArray) = PuzzleLoader.LoadSaved();
+        timer = timerUpdate;
         history = new HStack<string>(historyArray);
 
         InitializeGame();
@@ -126,6 +232,7 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
         SetFastMode(false);
         noteMode = false;
         gridController.ConstructGrid(puzzle);
+        gameStarted = true;
     }
 
     private void SetNoteMode(bool value) => noteMode = value;
@@ -149,7 +256,7 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
         gridController.QuickNote(value);
         if (history.Count == 0) return;
         history.Push(gridController.gridState + "q");
-        PuzzleLoader.SavePuzzle(puzzle, solution, history.ToArray());
+        PuzzleLoader.SavePuzzle(puzzle, timerUpdate, solution, history.ToArray());
     }
 
     private void SetEraseMode(bool value) => eraseMode = value;
@@ -250,8 +357,8 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
     private void SaveGame()
     {
         history.Push(gridController.gridState);
-        PuzzleLoader.SavePuzzle(puzzle, solution, history.ToArray());
-        Debug.Log("Game Saved");
+        PuzzleLoader.SavePuzzle(puzzle, timerUpdate, solution, history.ToArray());
+        // Debug.Log("Game Saved");
     }
 
     private void DeleteSave()
@@ -284,7 +391,7 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
     {
         string cellCorrect = solution[cellIndex].ToString();
         string actual = number.ToString();
-        
+
         bool isCorrect = !checkErrors || cellCorrect.Equals(actual);
 
         // Debug.Log($"GameLogicController: CorrectnessCheck - cellIndex: {cellIndex} - cellCorrect: {cellCorrect} - actual: {actual} - isCorrect: {isCorrect}");
@@ -302,7 +409,15 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
         {
             DelayCallback(onGameFinished);
             DeleteSave();
+            ResetTimer();
         }
+    }
+
+    private void ResetTimer()
+    {
+        timer = 0;
+        timerUpdate = 0;
+        gameStarted = false;
     }
 
     private void OnSettingsChanged(Settings settings)
@@ -314,6 +429,10 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
     {
         if (SettingsManager.instance != null)
             SettingsManager.instance.Unsubscribe(OnSettingsChanged);
+
+        // The thread is background so it can't outlive the player, but in the
+        // editor it would keep digging until the next domain reload.
+        genCts?.Cancel();
     }
 
     private class HStack<T>

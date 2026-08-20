@@ -3,24 +3,24 @@ import styles from './Modal.module.css'
 
 interface ModalProps {
     text: string,
-    primaryAction: {
+    primaryAction?: {
         text: string,
         onClick: () => void
     },
-    secondaryAction: {
+    secondaryAction?: {
         text: string,
         onClick: () => void
     },
     show: boolean
 }
 
-export default function Modal({ text, primaryAction, secondaryAction, show }: ModalProps) {
+export default function Modal({ text, primaryAction = undefined, secondaryAction = undefined, show }: ModalProps) {
     return show && (
         <div className={styles.modal_root}>
             {text}
             <div className={styles.modal_buttons}>
-                <Button onClick={secondaryAction.onClick} text={secondaryAction.text}/>
-                <Button onClick={primaryAction.onClick} text={primaryAction.text}/>
+                {primaryAction && <Button onClick={secondaryAction.onClick} text={secondaryAction.text}/>}
+                {secondaryAction && <Button onClick={primaryAction.onClick} text={primaryAction.text}/>}
             </div>
         </div>
     )

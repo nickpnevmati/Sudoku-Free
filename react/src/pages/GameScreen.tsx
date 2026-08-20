@@ -7,11 +7,12 @@ import { RootState } from "src/store";
 import { useDispatch, useSelector } from "react-redux";
 import { setContinue } from "src/slices/flagsSlice";
 import { commands, settings, screenKeys, useBridge } from "src/bridge";
+import Timer from "src/templates/Timer";
 
 export default function GameScreen() {
     const { getGlobal, navigateTo, boardPrefab } = useBridge();
     const dispatch = useDispatch();
-    
+
     const [fastMode, setFastMode] = useState(false);
     const [lastNum, setLastNum] = useState(0);
     const [noteMode, setNoteMode] = useState(false);
@@ -58,7 +59,7 @@ export default function GameScreen() {
         setGameOver(true);
     }
 
-    
+
     function onCellSelected(num: number | null) {
         if (!num) return;
         setLastNum(num);
@@ -112,6 +113,7 @@ export default function GameScreen() {
         <div className={styles.game_window_root}>
             <div className={styles.header_buttons}>
                 <Button onClick={() => { setShowExit(true) }} text="Exit" />
+                <Timer />
                 <Button onClick={onUndo} text="Undo" />
             </div>
 
@@ -140,6 +142,11 @@ export default function GameScreen() {
                     <Button onClick={handleEraseClicked} text="Eraser" type={fastMode ? ButtonType.Toggle : ButtonType.Button} toggleStatus={eraseMode} />
                 </div>
             </div>
+
+            <Modal
+                show={false}
+                text="Generating Game - Please wait"
+            />
 
             <Modal
                 show={showExit}

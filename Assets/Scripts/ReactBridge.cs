@@ -29,14 +29,14 @@ public class ReactBridge : MonoBehaviour
         react.Globals[Commands.ExitGame] = (Action)Application.Quit;
         react.Globals[Commands.NavigateTo] = (Action<string>)NavigateTo;
         react.Globals[PropertyKeys.screen] = ScreenKeys.MainMenu;
+        react.Globals[PropertyKeys.solveTime] = "0";
 
         react.Globals[PropertyKeys.boardPrefab] = boardPrefab;
 
         react.Globals[FlagKeys.hasPreviousSave] = PuzzleLoader.hasPreviousSave;
     }
 
-    public void NavigateTo(string screen) => 
-        react.Globals[PropertyKeys.screen] = screen;
+    public void NavigateTo(string screen) => react.Globals[PropertyKeys.screen] = screen;
 
     public void SetGlobal(string key, object value)
     {
@@ -81,6 +81,7 @@ public class PropertyKeys
 {
     public const string screen = "screen";
     public const string boardPrefab = "boardPrefab";
+    public const string solveTime = "solveTime";
 
     // GameLogicController
     public const string NoteMode = "noteMode";

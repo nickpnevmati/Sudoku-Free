@@ -23,6 +23,7 @@ export const flags = {
 export const props = {
   'screen': 'screen',
   'boardPrefab': 'boardPrefab',
+  'solveTime': 'solveTime',
 }
 
 export const commands = {
