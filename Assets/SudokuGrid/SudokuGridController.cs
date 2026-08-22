@@ -290,6 +290,7 @@ public class SudokuGridController : MonoBehaviour
 
             button = cell.GetComponentInChildren<Button>();
             int cellIndex = int.Parse(cell.name.Split('.')[1]) - 1;
+            button.onClick.RemoveAllListeners();
             button.onClick.AddListener(delegate { controller._onCellClicked.Invoke(cellIndex); });
         }
 

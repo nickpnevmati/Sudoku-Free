@@ -1,10 +1,10 @@
 {
   "dependencies": {
     "com.nosuchstudio.rtltmpro": "4.0.0",
-    "com.reactunity.clearscript": "0.23.0",
-    "com.reactunity.core": "0.23.0",
-    "com.reactunity.jint": "0.23.0",
-    "com.reactunity.quickjs": "0.23.0",
+    "com.reactunity.clearscript": "0.23.2",
+    "com.reactunity.core": "0.23.2",
+    "com.reactunity.jint": "0.23.2",
+    "com.reactunity.quickjs": "0.23.2",
     "com.unity.2d.aseprite": "1.1.10",
     "com.unity.2d.tilemap.extras": "4.1.0",
     "com.unity.adaptiveperformance.google.android": "5.1.6",
@@ -21,6 +21,7 @@
     "com.unity.ugui": "2.0.0",
     "com.unity.vectorgraphics": "2.0.0-preview.25",
     "com.unity.visualscripting": "1.9.7",
+    "com.walcht.ide.neovim": "https://github.com/walcht/com.walcht.ide.neovim.git",
     "com.unity.modules.accessibility": "1.0.0",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",

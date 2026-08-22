@@ -2,37 +2,38 @@ import { useGlobals } from "@reactunity/renderer";
 import { useMemo, useRef } from "react";
 
 export const screenKeys = {
-  'MainMenu': 'mainMenu',
-  'GameMenu': 'gameMenu',
-  'GameScreen': 'gameScreen',
-  'Settings': 'settings',
+  MainMenu: "mainMenu",
+  GameMenu: "gameMenu",
+  GameScreen: "gameScreen",
+  Settings: "settings",
 };
 
 export const settings = {
-  'darkTheme': 'darkTheme',
-  'checkErrors': 'checkErrors',
-  'disableQuickNote': 'disableQuickNote'
-}
+  darkTheme: "darkTheme",
+  checkErrors: "checkErrors",
+  disableQuickNote: "disableQuickNote",
+  hideEvilWarning: "hideEvilWarning",
+};
 
 export const flags = {
-  'hasPreviousSave': 'hasPreviousSave',
-}
+  hasPreviousSave: "hasPreviousSave",
+};
 
 // Globals keys only. The board's `custom-*` attribute names are not listed here - they are
 // JSX attributes, not globals, and ReactUnityCustomAttributes in global.d.ts type-checks them.
 export const props = {
-  'screen': 'screen',
-  'boardPrefab': 'boardPrefab',
-  'solveTime': 'solveTime',
-}
+  screen: "screen",
+  boardPrefab: "boardPrefab",
+  solveTime: "solveTime",
+};
 
 export const commands = {
-  'startGame': (difficulty: number) => `start_game:${difficulty}`,
-  'continueGame': 'continue_game',
-  'numpad': (num: number) => `numpad:${num}`,
-  'erase': 'erase',
-  'undo': 'undo',
-}
+  startGame: (difficulty: number) => `start_game:${difficulty}`,
+  continueGame: "continue_game",
+  numpad: (num: number) => `numpad:${num}`,
+  erase: "erase",
+  undo: "undo",
+};
 
 export function useBridge() {
   const globals = useGlobals();
@@ -43,18 +44,27 @@ export function useBridge() {
   const latest = useRef(globals);
   latest.current = globals;
 
-  const api = useMemo(() => ({
-    exitGame: () => latest.current.exitGame(),
-    navigateTo: (screen: string) => latest.current.navigateTo(screen),
-    changeSettings: (action: string, value: unknown) => latest.current.changeSetting(action, value),
-    setGlobal: (key: string, value: unknown) => { latest.current[key] = value; },
-    getGlobal: (key: string) => latest.current[key],
-  }), []);
+  const api = useMemo(
+    () => ({
+      exitGame: () => latest.current.exitGame(),
+      navigateTo: (screen: string) => latest.current.navigateTo(screen),
+      changeSettings: (action: string, value: unknown) =>
+        latest.current.changeSetting(action, value),
+      setGlobal: (key: string, value: unknown) => {
+        latest.current[key] = value;
+      },
+      getGlobal: (key: string) => latest.current[key],
+    }),
+    [],
+  );
 
   // Read during render, not inside the memo: the proxy's get trap is what subscribes this
   // component to a global, and these two drive re-renders.
   const screen = globals[props.screen];
   const boardPrefab = globals[props.boardPrefab];
 
-  return useMemo(() => ({ screen, boardPrefab, ...api }), [screen, boardPrefab, api]);
+  return useMemo(
+    () => ({ screen, boardPrefab, ...api }),
+    [screen, boardPrefab, api],
+  );
 }

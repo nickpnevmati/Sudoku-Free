@@ -45,6 +45,9 @@ public class SettingsManager : MonoBehaviour
             case SettingsKeys.disableQuickNote:
                 settings.disableQuickNote = Convert.ToBoolean(value);
                 break;
+            case SettingsKeys.hideEvilWarning:
+                settings.hideEvilWarning = Convert.ToBoolean(value);
+                break;
             default:
                 return;
         }
@@ -62,18 +65,21 @@ public class SettingsManager : MonoBehaviour
         bool darkTheme = bool.Parse(PrefOrDefault(SettingsKeys.darkTheme, "false"));
         bool checkErrors = bool.Parse(PrefOrDefault(SettingsKeys.checkErrors, "false"));
         bool disableQuickNote = bool.Parse(PrefOrDefault(SettingsKeys.disableQuickNote, "false"));
+        bool hideEvilWarning = bool.Parse(PrefOrDefault(SettingsKeys.hideEvilWarning, "false"));
 
         settings = new Settings
         {
             darkTheme = darkTheme,
             checkErrors = checkErrors,
             disableQuickNote = disableQuickNote,
+            hideEvilWarning = hideEvilWarning,
             boardTheme = darkTheme ? darkBoardTheme : lightBoardTheme,
         };
 
         ReactBridge.Instance.SetGlobal(SettingsKeys.darkTheme, settings.darkTheme);
         ReactBridge.Instance.SetGlobal(SettingsKeys.checkErrors, settings.checkErrors);
         ReactBridge.Instance.SetGlobal(SettingsKeys.disableQuickNote, settings.disableQuickNote);
+        ReactBridge.Instance.SetGlobal(SettingsKeys.hideEvilWarning, settings.hideEvilWarning);
     }
 
     /// <summary>
@@ -108,6 +114,7 @@ public class Settings
     public bool darkTheme;
     public bool checkErrors;
     public bool disableQuickNote;
+    public bool hideEvilWarning;
 
     /// <summary>Colours for the board itself. Set by SettingsManager from darkTheme.</summary>
     public BoardThemeSO boardTheme;

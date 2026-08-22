@@ -62,6 +62,7 @@ public class SettingsKeys
     public const string darkTheme = "darkTheme";
     public const string checkErrors = "checkErrors";
     public const string disableQuickNote = "disableQuickNote";
+    public const string hideEvilWarning = "hideEvilWarning";
 }
 
 public class Commands
@@ -89,4 +90,5 @@ public class PropertyKeys
     public const string QuickNote = "quickNote";
     public const string EraseMode = "eraseMode";
     public const string Command = "command";
+    public const string GamePaused = "gamePaused";
 }

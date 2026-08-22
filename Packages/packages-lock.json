@@ -8,14 +8,14 @@
       "url": "https://package.openupm.com"
     },
     "com.reactunity.clearscript": {
-      "version": "0.23.0",
+      "version": "0.23.2",
       "depth": 0,
       "source": "registry",
       "dependencies": {},
       "url": "https://package.openupm.com"
     },
     "com.reactunity.core": {
-      "version": "0.23.0",
+      "version": "0.23.2",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -25,14 +25,14 @@
       "url": "https://package.openupm.com"
     },
     "com.reactunity.jint": {
-      "version": "0.23.0",
+      "version": "0.23.2",
       "depth": 0,
       "source": "registry",
       "dependencies": {},
       "url": "https://package.openupm.com"
     },
     "com.reactunity.quickjs": {
-      "version": "0.23.0",
+      "version": "0.23.2",
       "depth": 0,
       "source": "registry",
       "dependencies": {},
@@ -429,6 +429,13 @@
         "com.unity.modules.jsonserialize": "1.0.0"
       },
       "url": "https://packages.unity.com"
+    },
+    "com.walcht.ide.neovim": {
+      "version": "https://github.com/walcht/com.walcht.ide.neovim.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "54fb26c29f5fc35cab1cb5f7be49e326813b251e"
     },
     "com.unity.modules.accessibility": {
       "version": "1.0.0",

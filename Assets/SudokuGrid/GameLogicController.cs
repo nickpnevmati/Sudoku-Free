@@ -1,11 +1,11 @@
 using System;
-using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using ReactUnity.UGUI.Behaviours;
+using System.Threading;
 using ReactUnity.Helpers;
 using ReactUnity.UGUI;
+using ReactUnity.UGUI.Behaviours;
+using UnityEngine;
 using Stopwatch = System.Diagnostics.Stopwatch;
 
 [RequireComponent(typeof(SudokuGridController))]
@@ -22,15 +22,19 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
     public int? selectedNumber;
     public int? selectedCell;
 
-    private Callback onCellSelected, onGameFinished;
+    private Callback onCellSelected,
+        onGameFinished,
+        onGameReady;
     private int lastCommandSeq = -1;
 
     // Timer stuff
-    bool gameStarted = false;
+    bool gameStarted = false,
+        gamePaused = false;
     float timer = 0;
     int timerUpdate = 0;
 
-    private string puzzle, solution;
+    private string puzzle,
+        solution;
     private HStack<string> history = new HStack<string>();
 
     // MultiThreading Stuff
@@ -41,7 +45,8 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
     // that makes the fields visible on the other side.
     private class GenResult
     {
-        public string puzzle, solution;
+        public string puzzle,
+            solution;
     }
 
     private Thread genThread;
@@ -75,7 +80,7 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
     void Update()
     {
         TryInitializeGame();
-        TryInitializeTimer();
+        HandleTimerUpdate();
     }
 
     public bool SetProperty(string propertyName, object value)
@@ -86,12 +91,26 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
             // React loads these on-mount - before the game is initialized
             // meaning that it can fuck with game state in ways that are hard to debug
             // make sure to account for it.
-            case PropertyKeys.NoteMode: SetNoteMode(Convert.ToBoolean(value)); return true;
-            case PropertyKeys.FastMode: SetFastMode(Convert.ToBoolean(value)); return true;
-            case PropertyKeys.QuickNote: SetQuickNote(Convert.ToBoolean(value)); return true;
-            case PropertyKeys.EraseMode: SetEraseMode(Convert.ToBoolean(value)); return true;
-            case PropertyKeys.Command: RunCommand(Convert.ToString(value)); return true;
-            default: return false;
+            case PropertyKeys.NoteMode:
+                SetNoteMode(Convert.ToBoolean(value));
+                return true;
+            case PropertyKeys.FastMode:
+                SetFastMode(Convert.ToBoolean(value));
+                return true;
+            case PropertyKeys.QuickNote:
+                SetQuickNote(Convert.ToBoolean(value));
+                return true;
+            case PropertyKeys.EraseMode:
+                SetEraseMode(Convert.ToBoolean(value));
+                return true;
+            case PropertyKeys.Command:
+                RunCommand(Convert.ToString(value));
+                return true;
+            case PropertyKeys.GamePaused:
+                gamePaused = Convert.ToBoolean(value);
+                return true;
+            default:
+                return false;
         }
     }
 
@@ -100,38 +119,62 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
         // Debug.Log($"AddEventListener: {eventName} handler={callback != null}");
         switch (eventName)
         {
-            case "onCellSelected": onCellSelected = callback; return () => onCellSelected = null;
-            case "onGameFinished": onGameFinished = callback; return () => onGameFinished = null;
-            default: return null;
+            case "onCellSelected":
+                onCellSelected = callback;
+                return () => onCellSelected = null;
+            case "onGameFinished":
+                onGameFinished = callback;
+                return () => onGameFinished = null;
+            case "onGameReady":
+                onGameReady = callback;
+                return () => onGameReady = null;
+            default:
+                return null;
         }
     }
 
     public void Mount(PrefabComponent cmp) { }
+
     public void Unmount(PrefabComponent cmp) { }
 
     public void RunCommand(string cmd)
     {
-        if (string.IsNullOrEmpty(cmd)) return;
+        if (string.IsNullOrEmpty(cmd))
+            return;
 
         var parts = cmd.Split(':');
-        if (parts.Length < 2) return;
-        if (!int.TryParse(parts[parts.Length - 1], out var seq)) return;
-        if (seq == lastCommandSeq) return;
+        if (parts.Length < 2)
+            return;
+        if (!int.TryParse(parts[parts.Length - 1], out var seq))
+            return;
+        if (seq == lastCommandSeq)
+            return;
         lastCommandSeq = seq;
 
         switch (parts[0])
         {
-            case Commands.Numpad: HandleNumpadClicked(int.Parse(parts[1])); break;
-            case Commands.Undo: Undo(); break;
-            case Commands.StartGame: StartGame(int.Parse(parts[1])); break;
-            case Commands.ContinueGame: ContinueGame(); break;
-            case Commands.Erase: HandleEraseClicked(); break;
+            case Commands.Numpad:
+                HandleNumpadClicked(int.Parse(parts[1]));
+                break;
+            case Commands.Undo:
+                Undo();
+                break;
+            case Commands.StartGame:
+                StartGame(int.Parse(parts[1]));
+                break;
+            case Commands.ContinueGame:
+                ContinueGame();
+                break;
+            case Commands.Erase:
+                HandleEraseClicked();
+                break;
         }
     }
 
     private void StartGame(int difficulty)
     {
-        PuzzleDifficulty diff = (PuzzleDifficulty)Math.Clamp(difficulty, (int)PuzzleDifficulty.EASY, (int)PuzzleDifficulty.EVIL);
+        PuzzleDifficulty diff = (PuzzleDifficulty)
+            Math.Clamp(difficulty, (int)PuzzleDifficulty.EASY, (int)PuzzleDifficulty.EVIL);
 
         // A Thread can only be started once, so each generation gets its own.
         if (genThread != null && genThread.IsAlive)
@@ -157,16 +200,17 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
         genThread.Start();
     }
 
-    private void TryInitializeTimer()
+    private void HandleTimerUpdate()
     {
-        if (!gameStarted) return;
+        if (!gameStarted || gamePaused)
+            return;
         timer += Time.deltaTime;
         int timerSec = (int)timer;
         if (timerSec > timerUpdate)
         {
             timerUpdate = timerSec;
             ReactBridge.Instance.SetGlobal(PropertyKeys.solveTime, timerUpdate.ToString());
-            SaveGame(); // do this here so the timer is saved
+            PuzzleLoader.SavePuzzle(puzzle, timerUpdate, solution, history.ToArray());
         }
     }
 
@@ -175,10 +219,12 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
         // Takes the pending result and clears it in one step, so a puzzle is
         // never initialized twice.
         GenResult result = Interlocked.Exchange(ref pendingResult, null);
-        if (result == null) return;
+        if (result == null)
+            return;
 
         (puzzle, solution) = (result.puzzle, result.solution);
         InitializeGame();
+        SaveGame();
     }
 
     private void GenerateGameAsync(PuzzleDifficulty difficulty, CancellationToken token)
@@ -192,10 +238,14 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
             // Hold the loading screen for a minimum beat, before handing over -
             // publishing first would let the main thread start the game early.
             long sleep = puzzle_gen_millis - watch.ElapsedMilliseconds;
-            if (sleep > 0) Thread.Sleep((int)sleep);
+            if (sleep > 0)
+                Thread.Sleep((int)sleep);
 
             token.ThrowIfCancellationRequested();
-            Interlocked.Exchange(ref pendingResult, new GenResult { puzzle = newPuzzle, solution = newSolution });
+            Interlocked.Exchange(
+                ref pendingResult,
+                new GenResult { puzzle = newPuzzle, solution = newSolution }
+            );
         }
         catch (OperationCanceledException)
         {
@@ -210,7 +260,8 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
 
     private void ContinueGame()
     {
-        if (!PuzzleLoader.hasPreviousSave) return;
+        if (!PuzzleLoader.hasPreviousSave)
+            return;
         Debug.Log("Continue Game");
         string[] historyArray;
         // TODO LeadSaved can throw - handle this
@@ -233,6 +284,7 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
         noteMode = false;
         gridController.ConstructGrid(puzzle);
         gameStarted = true;
+        DelayCallback(onGameReady);
     }
 
     private void SetNoteMode(bool value) => noteMode = value;
@@ -243,7 +295,8 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
 
         if (value)
         {
-            bool hasSelectedNumber = selectedCell != null && gridController.GetNumber((int)selectedCell) != null;
+            bool hasSelectedNumber =
+                selectedCell != null && gridController.GetNumber((int)selectedCell) != null;
             int number = hasSelectedNumber ? (int)gridController.GetNumber((int)selectedCell) : 1;
             selectedNumber = number;
             DelayCallback(onCellSelected, number);
@@ -254,9 +307,6 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
     private void SetQuickNote(bool value)
     {
         gridController.QuickNote(value);
-        if (history.Count == 0) return;
-        history.Push(gridController.gridState + "q");
-        PuzzleLoader.SavePuzzle(puzzle, timerUpdate, solution, history.ToArray());
     }
 
     private void SetEraseMode(bool value) => eraseMode = value;
@@ -270,8 +320,10 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
         }
         else
         {
-            if (selectedCell == null) return;
-            if (puzzle[(int)selectedCell] != '0') return;
+            if (selectedCell == null)
+                return;
+            if (puzzle[(int)selectedCell] != '0')
+                return;
 
             if (noteMode)
             {
@@ -291,10 +343,13 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
 
     private void HandleCellClicked(int cellIndex)
     {
-        Debug.Log($"GameLogicController: HandleCellClicked - fastMode: {fastMode} - noteMode: {noteMode} - eraseMode: {eraseMode}");
+        // Debug.Log(
+        //     $"GameLogicController: HandleCellClicked - fastMode: {fastMode} - noteMode: {noteMode} - eraseMode: {eraseMode}"
+        // );
         if (fastMode)
         {
-            if (selectedNumber == null) return;
+            if (selectedNumber == null)
+                return;
 
             int? number = gridController.GetNumber(cellIndex);
 
@@ -305,7 +360,9 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
                 selectedNumber = number;
                 return;
             }
-
+            Debug.Log(
+                $"GameLogicController: HandleCellClicked - fastMode: {fastMode} - noteMode: {noteMode} - eraseMode: {eraseMode} - selectedNumber: {selectedNumber}"
+            );
             if (noteMode)
             {
                 gridController.ToggleNote((int)selectedNumber, cellIndex);
@@ -313,8 +370,11 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
             }
             else if (eraseMode)
             {
-                Debug.Log($"GameLogicController: HandleCellClicked - puzzleAtIndex {puzzle[cellIndex]}");
-                if (puzzle[cellIndex] != '0') return;
+                // Debug.Log(
+                //     $"GameLogicController: HandleCellClicked - puzzleAtIndex {puzzle[cellIndex]}"
+                // );
+                if (puzzle[cellIndex] != '0')
+                    return;
 
                 gridController.SetNumber(null, cellIndex);
                 gridController.ClearNotes(cellIndex);
@@ -335,20 +395,24 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
             selectedCell = cellIndex;
             selectedNumber = gridController.GetNumber(cellIndex);
 
-            if (selectedNumber != null) gridController.HighlightNumbers((int)selectedNumber);
+            if (selectedNumber != null)
+                gridController.HighlightNumbers((int)selectedNumber);
         }
     }
 
     private void HandleEraseClicked()
     {
-        Debug.Log($"GameLogicController: HandleEraseClicked - fastMode: {fastMode} - selectedCell: {selectedCell} - puzzleAtIndex: {(selectedCell != null ? puzzle[(int)selectedCell] : "NaN")}");
+        Debug.Log(
+            $"GameLogicController: HandleEraseClicked - fastMode: {fastMode} - selectedCell: {selectedCell} - puzzleAtIndex: {(selectedCell != null ? puzzle[(int)selectedCell] : "NaN")}"
+        );
         if (fastMode)
         {
             eraseMode = !eraseMode;
             return;
         }
 
-        if (selectedCell == null || puzzle[(int)selectedCell] != '0') return;
+        if (selectedCell == null || puzzle[(int)selectedCell] != '0')
+            return;
 
         gridController.SetNumber(null, (int)selectedCell);
         gridController.ClearNotes((int)selectedCell);
@@ -370,11 +434,14 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
 
     private void Undo()
     {
-        if (history.Count <= 1) return;
+        if (history.Count <= 1)
+            return;
 
         string previousState = history.Pop();
         gridController.SetGridState(previousState);
         // quickNoteToggle.SetIsOnWithoutNotify(previousState.Contains('q'));
+        if (selectedNumber != null)
+            gridController.HighlightNumbers((int)selectedNumber);
         CorrectnessCheckAll();
     }
 
@@ -382,7 +449,8 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
     {
         foreach (var (num, index) in gridController.EnumerateCells()) // Ew
         {
-            if (num == null) continue;
+            if (num == null)
+                continue;
             CorrectnessCheck((int)num, index);
         }
     }
@@ -438,16 +506,16 @@ public class GameLogicController : MonoBehaviour, IPrefabTarget
     private class HStack<T>
     {
         // <summary>
-        /// Like a regular stack, only pop() discards the head element, and returns the new head 
+        /// Like a regular stack, only pop() discards the head element, and returns the new head
         /// Yes, it's stupid, no I don't care ¯\_(ツ)_/¯
         /// </summary>
-
         private Stack<T> stack;
 
         public int Count => stack.Count;
         public T Last => stack.ToArray()[0];
 
         public HStack() => stack = new Stack<T>();
+
         public HStack(IEnumerable<T> collection) => stack = new Stack<T>(collection);
 
         public void Push(T element) => stack.Push(element);

@@ -17,5 +17,5 @@ MonoBehaviour:
   gridBackground: {r: 0.110, g: 0.125, b: 0.188, a: 1}
   cellText: {r: 0.925, g: 0.933, b: 0.969, a: 1}
   cellTextError: {r: 0.937, g: 0.373, b: 0.455, a: 1}
-  noteText: {r: 0.573, g: 0.604, b: 0.714, a: 1}
-  noteHighlight: {r: 0.424, g: 0.486, b: 0.941, a: 1}
+  noteText: {r: 0.902, g: 0.925, b: 0.973, a: 1}
+  noteHighlight: {r: 0.180, g: 0.220, b: 0.500, a: 1}

@@ -9,8 +9,10 @@ declare global {
     'custom-fastMode'?: boolean;
     'custom-quickNote'?: boolean;
     'custom-eraseMode'?: boolean;
+    'custom-gamePaused'?: boolean;
 
     onGameFinished?: () => void;
+    onGameReady?: () => void;
     onCellSelected?: (index: number) => void;
   }
 }

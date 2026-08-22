@@ -13,6 +13,6 @@ public class BoardThemeSO : ScriptableObject
     public Color cellTextError = new Color(0.94f, 0.37f, 0.45f);
 
     [Header("Notes")]
-    public Color noteText = new Color(0.57f, 0.60f, 0.71f);
-    public Color noteHighlight = new Color(0.42f, 0.49f, 0.94f);
+    public Color noteText = new Color(0.90f, 0.93f, 0.97f);
+    public Color noteHighlight = new Color(0.18f, 0.22f, 0.50f);
 }
