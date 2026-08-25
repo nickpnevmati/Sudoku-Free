@@ -1,6 +1,7 @@
+import { memo } from "react";
 import { useBridge, props } from "src/bridge";
 
-export default function Timer() {
+function Timer() {
     const { getGlobal } = useBridge();
     const timerSeconds = getGlobal(props.solveTime);
 
@@ -17,3 +18,7 @@ export default function Timer() {
         <p>{formattedTimer()}</p>
     )
 }
+
+// Takes no props, so memo cuts it out of every parent re-render. It still updates once a second
+// off its own `solveTime` global subscription.
+export default memo(Timer)

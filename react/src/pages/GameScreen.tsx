@@ -1,13 +1,41 @@
 import Button from "src/templates/Button";
 import { ButtonType } from "src/templates/Button";
 import styles from "./GameScreen.module.css";
-import { useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import Modal from "src/templates/Modal";
 import { RootState } from "src/store";
 import { useDispatch, useSelector } from "react-redux";
 import { setContinue } from "src/slices/flagsSlice";
 import { commands, settings, screenKeys, useBridge } from "src/bridge";
 import Timer from "src/templates/Timer";
+
+interface NumpadKeyProps {
+  num: number;
+  selected: boolean;
+  onClick: (num: number) => void;
+}
+
+// Split out and memoized on purpose. Inline in the parent, all nine keys handed the host a fresh
+// onClick identity on every tap, and each re-bind crosses into C#. Memoized, a tap re-renders only
+// the two keys whose `selected` actually flipped, and even those keep a stable handler - so the
+// commit is two className writes instead of nine listener rebinds.
+const NumpadKey = memo(function NumpadKey({ num, selected, onClick }: NumpadKeyProps) {
+  const handleClick = useCallback(() => onClick(num), [onClick, num]);
+
+  return (
+    <div
+      id={`keypad-${num}`}
+      onClick={handleClick}
+      className={[styles.numpad_key, selected && styles.numpad_key_selected]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      {num}
+    </div>
+  );
+});
+
+const NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 export default function GameScreen() {
   const { getGlobal, navigateTo, boardPrefab } = useBridge();
@@ -22,7 +50,7 @@ export default function GameScreen() {
   // Command Stuff
   const [cmd, setCmd] = useState("");
   const seq = useRef(0);
-  const send = (c: string) => setCmd(`${c}:${seq.current++}`);
+  const send = useCallback((c: string) => setCmd(`${c}:${seq.current++}`), []);
 
   const [showExit, setShowExit] = useState(false);
   const [gameOver, setGameOver] = useState(false);
@@ -41,11 +69,15 @@ export default function GameScreen() {
   const continueGame = () => send(commands.continueGame);
   const exitGame = () => navigateTo(screenKeys.MainMenu);
 
-  const onNumpadClick = (button: number) => {
-    setLastNum(button);
-    send(commands.numpad(button));
-  };
-  const onUndo = () => send(commands.undo);
+  const onNumpadClick = useCallback(
+    (button: number) => {
+      setLastNum(button);
+      send(commands.numpad(button));
+    },
+    [send],
+  );
+  const onUndo = useCallback(() => send(commands.undo), [send]);
+  const openExit = useCallback(() => setShowExit(true), []);
 
   // Deliberately mount-once: this deals the puzzle. The ref guard is what enforces that,
   // not the empty dep array - so a re-run (StrictMode double-invoke, a hot reload, a future
@@ -61,6 +93,12 @@ export default function GameScreen() {
   }, []);
 
   // ----- Events -----
+  // NOTE: do NOT wrap the three prefab handlers below in useCallback. ReactUnity's
+  // PrefabComponent forwards listeners to its TargetHandler, but a listener bound before the
+  // prefab instance resolves lands on the base component and is never replayed onto the handler
+  // (ResolveInstance only replays CustomProperties). The fresh identity these get on every render
+  // is what re-binds them after the target appears - stabilizing them silently breaks onGameReady
+  // and the "Generating Game" modal never dismisses.
   function onGameFinished() {
     console.log("React: onGameFinished");
     setGameOver(true);
@@ -77,61 +115,31 @@ export default function GameScreen() {
 
   // ----- Events -----
 
-  function handleEraseClicked(_?: boolean) {
-    if (fastMode) {
-      setNoteMode(false);
-      setEraseMode(!eraseMode);
-      return;
-    }
+  const handleEraseClicked = useCallback(
+    (_?: boolean) => {
+      if (fastMode) {
+        setNoteMode(false);
+        setEraseMode((e) => !e);
+        return;
+      }
 
-    send(commands.erase);
-  }
+      send(commands.erase);
+    },
+    [fastMode, send],
+  );
 
-  function handleNoteClicked() {
+  const handleNoteClicked = useCallback(() => {
     if (fastMode) {
       setEraseMode(false);
     }
 
-    setNoteMode(!noteMode);
-  }
-
-  function createNumpad() {
-    const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-    return (
-      <div className={styles.numpad_parent}>
-        {numbers.map((num) => {
-          const key = `keypad-${num}`;
-          return (
-            <div
-              id={key}
-              key={key}
-              onClick={() => {
-                onNumpadClick(num);
-              }}
-              className={[
-                styles.numpad_key,
-                fastMode && lastNum === num && styles.numpad_key_selected,
-              ]
-                .filter(Boolean)
-                .join(" ")}
-            >
-              {num}
-            </div>
-          );
-        })}
-      </div>
-    );
-  }
+    setNoteMode((n) => !n);
+  }, [fastMode]);
 
   return (
     <div className={styles.game_window_root}>
       <div className={styles.header_buttons}>
-        <Button
-          onClick={() => {
-            setShowExit(true);
-          }}
-          text="Exit"
-        />
+        <Button onClick={openExit} text="Exit" />
         <Timer />
         <Button onClick={onUndo} text="Undo" />
       </div>
@@ -151,7 +159,16 @@ export default function GameScreen() {
       />
 
       <div className={styles.footer_container}>
-        {createNumpad()}
+        <div className={styles.numpad_parent}>
+          {NUMBERS.map((num) => (
+            <NumpadKey
+              key={`keypad-${num}`}
+              num={num}
+              selected={fastMode && lastNum === num}
+              onClick={onNumpadClick}
+            />
+          ))}
+        </div>
 
         <div className={styles.mode_buttons}>
           <Button
@@ -181,7 +198,9 @@ export default function GameScreen() {
         </div>
       </div>
 
-      <Modal show={generating} text="Generating Game - Please wait" />
+      {/* TEMP build marker - bumped each rebuild so a measurement run can prove which bundle the
+          APK actually shipped. Remove once the perf work is signed off. */}
+      <Modal show={generating} text="Generating Game - Please wait [b2]" />
 
       <Modal
         show={showExit}

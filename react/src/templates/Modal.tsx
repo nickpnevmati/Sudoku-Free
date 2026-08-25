@@ -20,8 +20,8 @@ export default function Modal({ text, primaryAction = undefined, secondaryAction
             <div className={styles.modal_root}>
                 {text}
                 <div className={styles.modal_buttons}>
-                    {primaryAction && <Button onClick={secondaryAction.onClick} text={secondaryAction.text}/>}
-                    {secondaryAction && <Button onClick={primaryAction.onClick} text={primaryAction.text}/>}
+                    {primaryAction && <Button onClick={primaryAction.onClick} text={primaryAction.text}/>}
+                    {secondaryAction && <Button onClick={secondaryAction.onClick} text={secondaryAction.text}/>}
                 </div>
             </div>
         </div>

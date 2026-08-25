@@ -671,21 +671,35 @@ ___CSS_LOADER_EXPORT___.locals = {
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_noSourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default()));
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, `.Modal_modal_root__yHhIQ {
+___CSS_LOADER_EXPORT___.push([module.id, `.Modal_modal_backdrop__tb-La {
     box-sizing: border-box;
     position: absolute;
 
-    top: 34%;
-    bottom: 34%;
-    left: 8%;
-    right: 8%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 0 6%;
+
+    background-color: #00000059;
+}
+
+.Modal_modal_root__yHhIQ {
+    box-sizing: border-box;
+
+    width: 100%;
 
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
     align-items: stretch;
 
-    padding: 34px 30px;
+    row-gap: 28px;
+    padding: 34px 28px;
 
     color: var(--text);
     text-align: center;
@@ -699,20 +713,23 @@ ___CSS_LOADER_EXPORT___.push([module.id, `.Modal_modal_root__yHhIQ {
 .Modal_modal_buttons__sf9AW {
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
     align-items: stretch;
 
-    column-gap: 18px;
+    column-gap: 14px;
 }
 
 /* both actions share the row evenly */
 .Modal_modal_buttons__sf9AW > div {
     flex-grow: 1;
     flex-basis: 0;
+
+    padding: 18px 14px;
+    font-size: 0.82em;
 }
 `, ""]);
 // Exports
 ___CSS_LOADER_EXPORT___.locals = {
+	"modal_backdrop": `Modal_modal_backdrop__tb-La`,
 	"modal_root": `Modal_modal_root__yHhIQ`,
 	"modal_buttons": `Modal_modal_buttons__sf9AW`
 };
@@ -1248,9 +1265,9 @@ var dictionary_watcher_assign=undefined&&undefined.__assign||function(){dictiona
 ;// ./node_modules/@reactunity/renderer/dist/src/helpers/hooks/use-globals.js
 var globalsWatcher=createDictionaryWatcher(Globals,'globalsContext');var useGlobals=globalsWatcher.useValue;var useGlobalsContext=globalsWatcher.useContext;var useGlobalsSelector=globalsWatcher.useSelector;var GlobalsProvider=globalsWatcher.Provider;
 ;// ./src/bridge.tsx
-var screenKeys={'MainMenu':'mainMenu','GameMenu':'gameMenu','GameScreen':'gameScreen','Settings':'settings'};var settings={'darkTheme':'darkTheme','checkErrors':'checkErrors','disableQuickNote':'disableQuickNote'};var flags={'hasPreviousSave':'hasPreviousSave'};// Globals keys only. The board's `custom-*` attribute names are not listed here - they are
+var screenKeys={MainMenu:"mainMenu",GameMenu:"gameMenu",GameScreen:"gameScreen",Settings:"settings"};var settings={darkTheme:"darkTheme",checkErrors:"checkErrors",disableQuickNote:"disableQuickNote",hideEvilWarning:"hideEvilWarning"};var flags={hasPreviousSave:"hasPreviousSave"};// Globals keys only. The board's `custom-*` attribute names are not listed here - they are
 // JSX attributes, not globals, and ReactUnityCustomAttributes in global.d.ts type-checks them.
-var props={'screen':'screen','boardPrefab':'boardPrefab'};var commands={'startGame':function startGame(difficulty){return"start_game:".concat(difficulty);},'continueGame':'continue_game','numpad':function numpad(num){return"numpad:".concat(num);},'erase':'erase','undo':'undo'};function useBridge(){var globals=useGlobals();// useGlobals() builds a fresh Proxy on every render, so anything closing over it directly
+var props={screen:"screen",boardPrefab:"boardPrefab",solveTime:"solveTime"};var commands={startGame:function startGame(difficulty){return"start_game:".concat(difficulty);},continueGame:"continue_game",numpad:function numpad(num){return"numpad:".concat(num);},erase:"erase",undo:"undo"};function useBridge(){var globals=useGlobals();// useGlobals() builds a fresh Proxy on every render, so anything closing over it directly
 // is a new reference every time. Keep the newest proxy in a ref and route the calls through
 // it: the functions below can then be created once and still read current values.
 var latest=(0,react.useRef)(globals);latest.current=globals;var api=(0,react.useMemo)(function(){return{exitGame:function exitGame(){return latest.current.exitGame();},navigateTo:function navigateTo(screen){return latest.current.navigateTo(screen);},changeSettings:function changeSettings(action,value){return latest.current.changeSetting(action,value);},setGlobal:function setGlobal(key,value){latest.current[key]=value;},getGlobal:function getGlobal(key){return latest.current[key];}};},[]);// Read during render, not inside the memo: the proxy's get trap is what subscribes this
@@ -1316,7 +1333,10 @@ var update = injectStylesIntoStyleTag_default()(Button_module/* default */.A, op
        /* harmony default export */ const templates_Button_module = (Button_module/* default */.A && Button_module/* default */.A.locals ? Button_module/* default */.A.locals : undefined);
 
 ;// ./src/templates/Button.tsx
-var ButtonType=/*#__PURE__*/function(ButtonType){ButtonType[ButtonType["Button"]=0]="Button";ButtonType[ButtonType["Toggle"]=1]="Toggle";return ButtonType;}({});function Button(_ref){var onClick=_ref.onClick,text=_ref.text,_ref$type=_ref.type,type=_ref$type===void 0?ButtonType.Button:_ref$type,_ref$toggleStatus=_ref.toggleStatus,toggleStatus=_ref$toggleStatus===void 0?undefined:_ref$toggleStatus;var _useState=(0,react.useState)(false),_useState2=_slicedToArray(_useState,2),toggleStatusInternal=_useState2[0],setToggleStatusInternal=_useState2[1];var status=toggleStatus!==null&&toggleStatus!==void 0?toggleStatus:toggleStatusInternal;function handleClick(){switch(type){case ButtonType.Button:onClick();break;case ButtonType.Toggle:onClick(!status);setToggleStatusInternal(!status);break;}}return/*#__PURE__*/(0,jsx_runtime.jsx)("div",{onClick:handleClick,className:[templates_Button_module.button,type===ButtonType.Toggle&&status&&templates_Button_module.active].filter(Boolean).join(' '),children:text});}
+var ButtonType=/*#__PURE__*/function(ButtonType){ButtonType[ButtonType["Button"]=0]="Button";ButtonType[ButtonType["Toggle"]=1]="Toggle";return ButtonType;}({});function Button(_ref){var onClick=_ref.onClick,text=_ref.text,_ref$type=_ref.type,type=_ref$type===void 0?ButtonType.Button:_ref$type,_ref$toggleStatus=_ref.toggleStatus,toggleStatus=_ref$toggleStatus===void 0?undefined:_ref$toggleStatus;var _useState=(0,react.useState)(false),_useState2=_slicedToArray(_useState,2),toggleStatusInternal=_useState2[0],setToggleStatusInternal=_useState2[1];var status=toggleStatus!==null&&toggleStatus!==void 0?toggleStatus:toggleStatusInternal;function handleClick(){switch(type){case ButtonType.Button:onClick();break;case ButtonType.Toggle:onClick(!status);setToggleStatusInternal(!status);break;}}return/*#__PURE__*/(0,jsx_runtime.jsx)("div",{onClick:handleClick,className:[templates_Button_module.button,type===ButtonType.Toggle&&status&&templates_Button_module.active].filter(Boolean).join(' '),children:text});}// Every re-render hands the host a new `handleClick` identity, and re-binding one listener across
+// the JS/C# boundary costs tens of milliseconds on device. Given stable props from the parent,
+// memo keeps these buttons out of the commit entirely.
+/* harmony default export */ const templates_Button = (/*#__PURE__*/(0,react.memo)(Button));
 ;// ./node_modules/react-redux/dist/react-redux.mjs
 /* unused harmony import specifier */ var react_redux_slicedToArray;
 /* unused harmony import specifier */ var _toConsumableArray;
@@ -1634,38 +1654,7 @@ function redux_toolkit_modern_formatProdErrorMessage(code){return"Minified Redux
 ;// ./src/slices/flagsSlice.ts
 var initialState={difficulty:0,continueGame:false};var flagsSlice=createSlice({name:'flags',initialState:initialState,reducers:{setDifficulty:function setDifficulty(state,value){state.difficulty=value.payload;},setContinue:function setContinue(state,value){state.continueGame=value.payload;}}});var _flagsSlice$actions=flagsSlice.actions,setDifficulty=_flagsSlice$actions.setDifficulty,setContinue=_flagsSlice$actions.setContinue;var flagsReducer=flagsSlice.reducer;
 ;// ./src/pages/MainMenu.tsx
-function MainMenu(){var _useBridge=useBridge(),getGlobal=_useBridge.getGlobal,navigateTo=_useBridge.navigateTo,exitGame=_useBridge.exitGame;var dispatch=useDispatch();var hasPreviousSave=getGlobal(flags.hasPreviousSave);function continueGame(){dispatch(setContinue(true));navigateTo(screenKeys.GameScreen);}return/*#__PURE__*/(0,jsx_runtime.jsxs)("div",{className:"buttons_container",children:[/*#__PURE__*/(0,jsx_runtime.jsx)(Button,{onClick:function onClick(){return navigateTo(screenKeys.GameMenu);},text:'New Game'}),hasPreviousSave&&/*#__PURE__*/(0,jsx_runtime.jsx)(Button,{onClick:continueGame,text:"Continue Game"}),/*#__PURE__*/(0,jsx_runtime.jsx)(Button,{onClick:function onClick(){return navigateTo(screenKeys.Settings);},text:'Settings'}),/*#__PURE__*/(0,jsx_runtime.jsx)(Button,{onClick:exitGame,text:'Exit'})]});}
-;// ./src/pages/GameMenu.tsx
-function GameMenu(){var dispatch=useDispatch();var _useBridge=useBridge(),navigateTo=_useBridge.navigateTo;var startGame=function startGame(difficulty){dispatch(setDifficulty(difficulty));navigateTo(screenKeys.GameScreen);};return/*#__PURE__*/(0,jsx_runtime.jsxs)("div",{"class":"buttons_container",children:[/*#__PURE__*/(0,jsx_runtime.jsx)(Button,{onClick:function onClick(){return startGame(0);},text:"Easy"}),/*#__PURE__*/(0,jsx_runtime.jsx)(Button,{onClick:function onClick(){return startGame(1);},text:"Medium"}),/*#__PURE__*/(0,jsx_runtime.jsx)(Button,{onClick:function onClick(){return startGame(2);},text:"Hard"}),/*#__PURE__*/(0,jsx_runtime.jsx)(Button,{onClick:function onClick(){return navigateTo(screenKeys.MainMenu);},text:"Back"})]});}
-// EXTERNAL MODULE: ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[0].oneOf[5].use[1]!./src/pages/GameScreen.module.css
-var GameScreen_module = __webpack_require__("./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[0].oneOf[5].use[1]!./src/pages/GameScreen.module.css");
-;// ./src/pages/GameScreen.module.css
-
-      
-      
-      
-      
-      
-      
-      
-      
-      
-
-var GameScreen_module_options = {};
-
-GameScreen_module_options.styleTagTransform = (styleTagTransform_default());
-GameScreen_module_options.setAttributes = (setAttributesWithoutAttributes_default());
-GameScreen_module_options.insert = insertBySelector_default().bind(null, "head");
-GameScreen_module_options.domAPI = (styleDomAPI_default());
-GameScreen_module_options.insertStyleElement = (insertStyleElement_default());
-
-var GameScreen_module_update = injectStylesIntoStyleTag_default()(GameScreen_module/* default */.A, GameScreen_module_options);
-
-
-
-
-       /* harmony default export */ const pages_GameScreen_module = (GameScreen_module/* default */.A && GameScreen_module/* default */.A.locals ? GameScreen_module/* default */.A.locals : undefined);
-
+function MainMenu(){var _useBridge=useBridge(),getGlobal=_useBridge.getGlobal,navigateTo=_useBridge.navigateTo,exitGame=_useBridge.exitGame;var dispatch=useDispatch();var hasPreviousSave=getGlobal(flags.hasPreviousSave);function continueGame(){dispatch(setContinue(true));navigateTo(screenKeys.GameScreen);}return/*#__PURE__*/(0,jsx_runtime.jsxs)("div",{className:"buttons_container",children:[/*#__PURE__*/(0,jsx_runtime.jsx)(templates_Button,{onClick:function onClick(){return navigateTo(screenKeys.GameMenu);},text:'New Game'}),hasPreviousSave&&/*#__PURE__*/(0,jsx_runtime.jsx)(templates_Button,{onClick:continueGame,text:"Continue Game"}),/*#__PURE__*/(0,jsx_runtime.jsx)(templates_Button,{onClick:function onClick(){return navigateTo(screenKeys.Settings);},text:'Settings'}),/*#__PURE__*/(0,jsx_runtime.jsx)(templates_Button,{onClick:exitGame,text:'Exit'})]});}
 // EXTERNAL MODULE: ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[0].oneOf[5].use[1]!./src/templates/Modal.module.css
 var Modal_module = __webpack_require__("./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[0].oneOf[5].use[1]!./src/templates/Modal.module.css");
 ;// ./src/templates/Modal.module.css
@@ -1696,16 +1685,61 @@ var Modal_module_update = injectStylesIntoStyleTag_default()(Modal_module/* defa
        /* harmony default export */ const templates_Modal_module = (Modal_module/* default */.A && Modal_module/* default */.A.locals ? Modal_module/* default */.A.locals : undefined);
 
 ;// ./src/templates/Modal.tsx
-function Modal(_ref){var text=_ref.text,primaryAction=_ref.primaryAction,secondaryAction=_ref.secondaryAction,show=_ref.show;return show&&/*#__PURE__*/(0,jsx_runtime.jsxs)("div",{className:templates_Modal_module.modal_root,children:[text,/*#__PURE__*/(0,jsx_runtime.jsxs)("div",{className:templates_Modal_module.modal_buttons,children:[/*#__PURE__*/(0,jsx_runtime.jsx)(Button,{onClick:secondaryAction.onClick,text:secondaryAction.text}),/*#__PURE__*/(0,jsx_runtime.jsx)(Button,{onClick:primaryAction.onClick,text:primaryAction.text})]})]});}
+function Modal(_ref){var text=_ref.text,_ref$primaryAction=_ref.primaryAction,primaryAction=_ref$primaryAction===void 0?undefined:_ref$primaryAction,_ref$secondaryAction=_ref.secondaryAction,secondaryAction=_ref$secondaryAction===void 0?undefined:_ref$secondaryAction,show=_ref.show;return show&&/*#__PURE__*/(0,jsx_runtime.jsx)("div",{className:templates_Modal_module.modal_backdrop,children:/*#__PURE__*/(0,jsx_runtime.jsxs)("div",{className:templates_Modal_module.modal_root,children:[text,/*#__PURE__*/(0,jsx_runtime.jsxs)("div",{className:templates_Modal_module.modal_buttons,children:[primaryAction&&/*#__PURE__*/(0,jsx_runtime.jsx)(templates_Button,{onClick:primaryAction.onClick,text:primaryAction.text}),secondaryAction&&/*#__PURE__*/(0,jsx_runtime.jsx)(templates_Button,{onClick:secondaryAction.onClick,text:secondaryAction.text})]})]})});}
+;// ./src/pages/GameMenu.tsx
+function GameMenu(){var dispatch=useDispatch();var _useBridge=useBridge(),getGlobal=_useBridge.getGlobal,changeSettings=_useBridge.changeSettings,navigateTo=_useBridge.navigateTo;var _useState=(0,react.useState)(false),_useState2=_slicedToArray(_useState,2),warnModal=_useState2[0],setWarnModal=_useState2[1];var hideEvilWarning=getGlobal(settings.hideEvilWarning);var startGame=function startGame(difficulty){dispatch(setDifficulty(difficulty));navigateTo(screenKeys.GameScreen);};var handleEvilDifficulty=function handleEvilDifficulty(){if(hideEvilWarning){startGame(3);return;}setWarnModal(true);};var dismissWarnModal=function dismissWarnModal(){changeSettings(settings.hideEvilWarning,true);setWarnModal(false);};return/*#__PURE__*/(0,jsx_runtime.jsxs)(jsx_runtime.Fragment,{children:[/*#__PURE__*/(0,jsx_runtime.jsxs)("div",{"class":"buttons_container",children:[/*#__PURE__*/(0,jsx_runtime.jsx)(templates_Button,{onClick:function onClick(){return startGame(0);},text:"Easy"}),/*#__PURE__*/(0,jsx_runtime.jsx)(templates_Button,{onClick:function onClick(){return startGame(1);},text:"Medium"}),/*#__PURE__*/(0,jsx_runtime.jsx)(templates_Button,{onClick:function onClick(){return startGame(2);},text:"Hard"}),/*#__PURE__*/(0,jsx_runtime.jsx)(templates_Button,{onClick:handleEvilDifficulty,text:"Evil"}),/*#__PURE__*/(0,jsx_runtime.jsx)(templates_Button,{onClick:function onClick(){return navigateTo(screenKeys.MainMenu);},text:"Back"})]}),/*#__PURE__*/(0,jsx_runtime.jsx)(Modal,{show:warnModal,text:"\"Evil\" difficulty games may take some time to generate on older devices",primaryAction:{text:"I understand, continue",onClick:function onClick(){dismissWarnModal();startGame(3);}},secondaryAction:{text:"Go back",onClick:dismissWarnModal}})]});}
+// EXTERNAL MODULE: ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[0].oneOf[5].use[1]!./src/pages/GameScreen.module.css
+var GameScreen_module = __webpack_require__("./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[0].oneOf[5].use[1]!./src/pages/GameScreen.module.css");
+;// ./src/pages/GameScreen.module.css
+
+      
+      
+      
+      
+      
+      
+      
+      
+      
+
+var GameScreen_module_options = {};
+
+GameScreen_module_options.styleTagTransform = (styleTagTransform_default());
+GameScreen_module_options.setAttributes = (setAttributesWithoutAttributes_default());
+GameScreen_module_options.insert = insertBySelector_default().bind(null, "head");
+GameScreen_module_options.domAPI = (styleDomAPI_default());
+GameScreen_module_options.insertStyleElement = (insertStyleElement_default());
+
+var GameScreen_module_update = injectStylesIntoStyleTag_default()(GameScreen_module/* default */.A, GameScreen_module_options);
+
+
+
+
+       /* harmony default export */ const pages_GameScreen_module = (GameScreen_module/* default */.A && GameScreen_module/* default */.A.locals ? GameScreen_module/* default */.A.locals : undefined);
+
+;// ./src/templates/Timer.tsx
+function Timer(){var _useBridge=useBridge(),getGlobal=_useBridge.getGlobal;var timerSeconds=getGlobal(props.solveTime);var formattedTimer=function formattedTimer(){if(timerSeconds<0){return"";}var date=new Date(0);date.setSeconds(timerSeconds);return date.toISOString().substring(11,19);};return/*#__PURE__*/(0,jsx_runtime.jsx)("p",{children:formattedTimer()});}// Takes no props, so memo cuts it out of every parent re-render. It still updates once a second
+// off its own `solveTime` global subscription.
+/* harmony default export */ const templates_Timer = (/*#__PURE__*/(0,react.memo)(Timer));
 ;// ./src/pages/GameScreen.tsx
-function GameScreen(){var _useBridge=useBridge(),getGlobal=_useBridge.getGlobal,navigateTo=_useBridge.navigateTo,boardPrefab=_useBridge.boardPrefab;var dispatch=useDispatch();var _useState=(0,react.useState)(false),_useState2=_slicedToArray(_useState,2),fastMode=_useState2[0],setFastMode=_useState2[1];var _useState3=(0,react.useState)(0),_useState4=_slicedToArray(_useState3,2),lastNum=_useState4[0],setLastNum=_useState4[1];var _useState5=(0,react.useState)(false),_useState6=_slicedToArray(_useState5,2),noteMode=_useState6[0],setNoteMode=_useState6[1];var _useState7=(0,react.useState)(false),_useState8=_slicedToArray(_useState7,2),quickNote=_useState8[0],setQuickNote=_useState8[1];var _useState9=(0,react.useState)(false),_useState0=_slicedToArray(_useState9,2),eraseMode=_useState0[0],setEraseMode=_useState0[1];// Command Stuff
-var _useState1=(0,react.useState)(''),_useState10=_slicedToArray(_useState1,2),cmd=_useState10[0],setCmd=_useState10[1];var seq=(0,react.useRef)(0);var send=function send(c){return setCmd("".concat(c,":").concat(seq.current++));};var _useState11=(0,react.useState)(false),_useState12=_slicedToArray(_useState11,2),showExit=_useState12[0],setShowExit=_useState12[1];var _useState13=(0,react.useState)(false),_useState14=_slicedToArray(_useState13,2),gameOver=_useState14[0],setGameOver=_useState14[1];var difficulty=useSelector(function(state){return state.flagsReducer.difficulty;});var continueFlag=useSelector(function(state){return state.flagsReducer.continueGame;});var newGame=function newGame(){return send(commands.startGame(difficulty));};var continueGame=function continueGame(){return send(commands.continueGame);};var exitGame=function exitGame(){return navigateTo(screenKeys.MainMenu);};var onNumpadClick=function onNumpadClick(button){setLastNum(button);send(commands.numpad(button));};var onUndo=function onUndo(){return send(commands.undo);};// Deliberately mount-once: this deals the puzzle. The ref guard is what enforces that,
+// Split out and memoized on purpose. Inline in the parent, all nine keys handed the host a fresh
+// onClick identity on every tap, and each re-bind crosses into C#. Memoized, a tap re-renders only
+// the two keys whose `selected` actually flipped, and even those keep a stable handler - so the
+// commit is two className writes instead of nine listener rebinds.
+var NumpadKey=/*#__PURE__*/(0,react.memo)(function NumpadKey(_ref){var num=_ref.num,selected=_ref.selected,onClick=_ref.onClick;var handleClick=(0,react.useCallback)(function(){return onClick(num);},[onClick,num]);return/*#__PURE__*/(0,jsx_runtime.jsx)("div",{id:"keypad-".concat(num),onClick:handleClick,className:[pages_GameScreen_module.numpad_key,selected&&pages_GameScreen_module.numpad_key_selected].filter(Boolean).join(" "),children:num});});var NUMBERS=[1,2,3,4,5,6,7,8,9];function GameScreen(){var _useBridge=useBridge(),getGlobal=_useBridge.getGlobal,navigateTo=_useBridge.navigateTo,boardPrefab=_useBridge.boardPrefab;var dispatch=useDispatch();var _useState=(0,react.useState)(false),_useState2=_slicedToArray(_useState,2),fastMode=_useState2[0],setFastMode=_useState2[1];var _useState3=(0,react.useState)(0),_useState4=_slicedToArray(_useState3,2),lastNum=_useState4[0],setLastNum=_useState4[1];var _useState5=(0,react.useState)(false),_useState6=_slicedToArray(_useState5,2),noteMode=_useState6[0],setNoteMode=_useState6[1];var _useState7=(0,react.useState)(false),_useState8=_slicedToArray(_useState7,2),quickNote=_useState8[0],setQuickNote=_useState8[1];var _useState9=(0,react.useState)(false),_useState0=_slicedToArray(_useState9,2),eraseMode=_useState0[0],setEraseMode=_useState0[1];// Command Stuff
+var _useState1=(0,react.useState)(""),_useState10=_slicedToArray(_useState1,2),cmd=_useState10[0],setCmd=_useState10[1];var seq=(0,react.useRef)(0);var send=(0,react.useCallback)(function(c){return setCmd("".concat(c,":").concat(seq.current++));},[]);var _useState11=(0,react.useState)(false),_useState12=_slicedToArray(_useState11,2),showExit=_useState12[0],setShowExit=_useState12[1];var _useState13=(0,react.useState)(false),_useState14=_slicedToArray(_useState13,2),gameOver=_useState14[0],setGameOver=_useState14[1];var _useState15=(0,react.useState)(true),_useState16=_slicedToArray(_useState15,2),generating=_useState16[0],setGenerating=_useState16[1];var gamePaused=showExit;var difficulty=useSelector(function(state){return state.flagsReducer.difficulty;});var continueFlag=useSelector(function(state){return state.flagsReducer.continueGame;});var newGame=function newGame(){return send(commands.startGame(difficulty));};var continueGame=function continueGame(){return send(commands.continueGame);};var exitGame=function exitGame(){return navigateTo(screenKeys.MainMenu);};var onNumpadClick=(0,react.useCallback)(function(button){setLastNum(button);send(commands.numpad(button));},[send]);var onUndo=(0,react.useCallback)(function(){return send(commands.undo);},[send]);var openExit=(0,react.useCallback)(function(){return setShowExit(true);},[]);// Deliberately mount-once: this deals the puzzle. The ref guard is what enforces that,
 // not the empty dep array - so a re-run (StrictMode double-invoke, a hot reload, a future
 // dep being added) can't deal a second puzzle over the top of the one in play.
 var dealt=(0,react.useRef)(false);(0,react.useEffect)(function(){if(dealt.current)return;dealt.current=true;continueFlag?continueGame():newGame();dispatch(setContinue(false));// eslint-disable-next-line react-hooks/exhaustive-deps
-},[]);// ----- Events ----- 
-function onGameFinished(){console.log("React: onGameFinished");setGameOver(true);}function onCellSelected(num){if(!num)return;setLastNum(num);}// ----- Events ----- 
-function handleEraseClicked(_){if(fastMode){setNoteMode(false);setEraseMode(!eraseMode);return;}send(commands.erase);}function handleNoteClicked(){if(fastMode){setEraseMode(false);}setNoteMode(!noteMode);}function createNumpad(){var numbers=[1,2,3,4,5,6,7,8,9];return/*#__PURE__*/(0,jsx_runtime.jsx)("div",{className:pages_GameScreen_module.numpad_parent,children:numbers.map(function(num){var key="keypad-".concat(num);return/*#__PURE__*/(0,jsx_runtime.jsx)("div",{id:key,onClick:function onClick(){onNumpadClick(num);},className:[pages_GameScreen_module.numpad_key,fastMode&&lastNum===num&&pages_GameScreen_module.numpad_key_selected].filter(Boolean).join(' '),children:num},key);})});}return/*#__PURE__*/(0,jsx_runtime.jsxs)("div",{className:pages_GameScreen_module.game_window_root,children:[/*#__PURE__*/(0,jsx_runtime.jsxs)("div",{className:pages_GameScreen_module.header_buttons,children:[/*#__PURE__*/(0,jsx_runtime.jsx)(Button,{onClick:function onClick(){setShowExit(true);},text:"Exit"}),/*#__PURE__*/(0,jsx_runtime.jsx)(Button,{onClick:onUndo,text:"Undo"})]}),/*#__PURE__*/(0,jsx_runtime.jsx)("prefab",{className:pages_GameScreen_module.board_prefab,target:boardPrefab,"custom-command":cmd,"custom-noteMode":noteMode,"custom-fastMode":fastMode,"custom-eraseMode":eraseMode,"custom-quickNote":quickNote,onCellSelected:onCellSelected,onGameFinished:onGameFinished}),/*#__PURE__*/(0,jsx_runtime.jsxs)("div",{className:pages_GameScreen_module.footer_container,children:[createNumpad(),/*#__PURE__*/(0,jsx_runtime.jsxs)("div",{className:pages_GameScreen_module.mode_buttons,children:[/*#__PURE__*/(0,jsx_runtime.jsx)(Button,{onClick:setFastMode,text:"Fast Mode",type:ButtonType.Toggle}),/*#__PURE__*/(0,jsx_runtime.jsx)(Button,{onClick:handleNoteClicked,text:"Note",type:ButtonType.Toggle,toggleStatus:!eraseMode&&noteMode}),!getGlobal(settings.disableQuickNote)&&/*#__PURE__*/(0,jsx_runtime.jsx)(Button,{onClick:setQuickNote,text:"Quick Note",type:ButtonType.Toggle}),/*#__PURE__*/(0,jsx_runtime.jsx)(Button,{onClick:handleEraseClicked,text:"Eraser",type:fastMode?ButtonType.Toggle:ButtonType.Button,toggleStatus:eraseMode})]})]}),/*#__PURE__*/(0,jsx_runtime.jsx)(Modal,{show:showExit,text:"Are you sure you want to leave the game?",primaryAction:{onClick:exitGame,text:'Yes, Exit'},secondaryAction:{onClick:function onClick(){return setShowExit(false);},text:'Keep Playing'}}),/*#__PURE__*/(0,jsx_runtime.jsx)(Modal,{show:gameOver,text:"Game Complete! Would you like to play again?",primaryAction:{text:"Yes!",onClick:function onClick(){setGameOver(false);newGame();}},secondaryAction:{text:"No",onClick:function onClick(){setGameOver(false);exitGame();}}})]});}
+},[]);// ----- Events -----
+// NOTE: do NOT wrap the three prefab handlers below in useCallback. ReactUnity's
+// PrefabComponent forwards listeners to its TargetHandler, but a listener bound before the
+// prefab instance resolves lands on the base component and is never replayed onto the handler
+// (ResolveInstance only replays CustomProperties). The fresh identity these get on every render
+// is what re-binds them after the target appears - stabilizing them silently breaks onGameReady
+// and the "Generating Game" modal never dismisses.
+function onGameFinished(){console.log("React: onGameFinished");setGameOver(true);}function onCellSelected(num){if(!num)return;setLastNum(num);}function onGameReady(){setGenerating(false);}// ----- Events -----
+var handleEraseClicked=(0,react.useCallback)(function(_){if(fastMode){setNoteMode(false);setEraseMode(function(e){return!e;});return;}send(commands.erase);},[fastMode,send]);var handleNoteClicked=(0,react.useCallback)(function(){if(fastMode){setEraseMode(false);}setNoteMode(function(n){return!n;});},[fastMode]);return/*#__PURE__*/(0,jsx_runtime.jsxs)("div",{className:pages_GameScreen_module.game_window_root,children:[/*#__PURE__*/(0,jsx_runtime.jsxs)("div",{className:pages_GameScreen_module.header_buttons,children:[/*#__PURE__*/(0,jsx_runtime.jsx)(templates_Button,{onClick:openExit,text:"Exit"}),/*#__PURE__*/(0,jsx_runtime.jsx)(templates_Timer,{}),/*#__PURE__*/(0,jsx_runtime.jsx)(templates_Button,{onClick:onUndo,text:"Undo"})]}),/*#__PURE__*/(0,jsx_runtime.jsx)("prefab",{className:pages_GameScreen_module.board_prefab,target:boardPrefab,"custom-command":cmd,"custom-noteMode":noteMode,"custom-fastMode":fastMode,"custom-eraseMode":eraseMode,"custom-quickNote":quickNote,"custom-gamePaused":gamePaused,onCellSelected:onCellSelected,onGameFinished:onGameFinished,onGameReady:onGameReady}),/*#__PURE__*/(0,jsx_runtime.jsxs)("div",{className:pages_GameScreen_module.footer_container,children:[/*#__PURE__*/(0,jsx_runtime.jsx)("div",{className:pages_GameScreen_module.numpad_parent,children:NUMBERS.map(function(num){return/*#__PURE__*/(0,jsx_runtime.jsx)(NumpadKey,{num:num,selected:fastMode&&lastNum===num,onClick:onNumpadClick},"keypad-".concat(num));})}),/*#__PURE__*/(0,jsx_runtime.jsxs)("div",{className:pages_GameScreen_module.mode_buttons,children:[/*#__PURE__*/(0,jsx_runtime.jsx)(templates_Button,{onClick:setFastMode,text:"Fast Mode",type:ButtonType.Toggle}),/*#__PURE__*/(0,jsx_runtime.jsx)(templates_Button,{onClick:handleNoteClicked,text:"Note",type:ButtonType.Toggle,toggleStatus:!eraseMode&&noteMode}),!getGlobal(settings.disableQuickNote)&&/*#__PURE__*/(0,jsx_runtime.jsx)(templates_Button,{onClick:setQuickNote,text:"Quick Note",type:ButtonType.Toggle}),/*#__PURE__*/(0,jsx_runtime.jsx)(templates_Button,{onClick:handleEraseClicked,text:"Eraser",type:fastMode?ButtonType.Toggle:ButtonType.Button,toggleStatus:eraseMode})]})]}),/*#__PURE__*/(0,jsx_runtime.jsx)(Modal,{show:generating,text:"Generating Game - Please wait [b2]"}),/*#__PURE__*/(0,jsx_runtime.jsx)(Modal,{show:showExit,text:"Are you sure you want to leave the game?",primaryAction:{onClick:exitGame,text:"Yes, Exit"},secondaryAction:{onClick:function onClick(){return setShowExit(false);},text:"Keep Playing"}}),/*#__PURE__*/(0,jsx_runtime.jsx)(Modal,{show:gameOver,text:"Game Complete! Would you like to play again?",primaryAction:{text:"Yes!",onClick:function onClick(){setGameOver(false);setGenerating(true);newGame();}},secondaryAction:{text:"No",onClick:function onClick(){setGameOver(false);exitGame();}}})]});}
 // EXTERNAL MODULE: ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[0].oneOf[5].use[1]!./src/templates/Toggle.module.css
 var Toggle_module = __webpack_require__("./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[0].oneOf[5].use[1]!./src/templates/Toggle.module.css");
 ;// ./src/templates/Toggle.module.css
@@ -1767,7 +1801,7 @@ var SettingsPage_module_update = injectStylesIntoStyleTag_default()(SettingsPage
        /* harmony default export */ const pages_SettingsPage_module = (SettingsPage_module/* default */.A && SettingsPage_module/* default */.A.locals ? SettingsPage_module/* default */.A.locals : undefined);
 
 ;// ./src/pages/SettingsPage.tsx
-function Setting(_ref){var title=_ref.title,hint=_ref.hint,child=_ref.child;return/*#__PURE__*/(0,jsx_runtime.jsxs)("div",{className:pages_SettingsPage_module.setting_row,children:[/*#__PURE__*/(0,jsx_runtime.jsxs)("div",{className:pages_SettingsPage_module.setting_text,children:[/*#__PURE__*/(0,jsx_runtime.jsx)("div",{className:pages_SettingsPage_module.setting_title,children:title}),hint&&/*#__PURE__*/(0,jsx_runtime.jsx)("div",{className:pages_SettingsPage_module.setting_hint,children:hint})]}),child]});}function SettingsPage(){var _useBridge=useBridge(),getGlobal=_useBridge.getGlobal,navigateTo=_useBridge.navigateTo,changeSettings=_useBridge.changeSettings;var darkTheme=getGlobal(settings.darkTheme);var checkErrors=getGlobal(settings.checkErrors);var disableQuickNote=getGlobal(settings.disableQuickNote);return/*#__PURE__*/(0,jsx_runtime.jsxs)("div",{className:pages_SettingsPage_module.settings_root,children:[/*#__PURE__*/(0,jsx_runtime.jsxs)("div",{className:pages_SettingsPage_module.header,children:[/*#__PURE__*/(0,jsx_runtime.jsx)(Button,{text:"Back",onClick:function onClick(){return navigateTo(screenKeys.MainMenu);}}),/*#__PURE__*/(0,jsx_runtime.jsx)("div",{className:pages_SettingsPage_module.header_title,children:"Settings"})]}),/*#__PURE__*/(0,jsx_runtime.jsxs)("div",{className:pages_SettingsPage_module.list,children:[/*#__PURE__*/(0,jsx_runtime.jsx)(Setting,{title:"Theme",hint:"Switches the board and menu colours",child:/*#__PURE__*/(0,jsx_runtime.jsx)(Toggle,{value:darkTheme,onChange:function onChange(value){return changeSettings(settings.darkTheme,value);},offText:"Light",onText:"Dark"})}),/*#__PURE__*/(0,jsx_runtime.jsx)(Setting,{title:"Check Errors",hint:"When ON, errors will show in red",child:/*#__PURE__*/(0,jsx_runtime.jsx)(Toggle,{onChange:function onChange(value){return changeSettings(settings.checkErrors,value);},value:checkErrors})}),/*#__PURE__*/(0,jsx_runtime.jsx)(Setting,{title:"Disable Quick Note",hint:"Hides the quicknote button",child:/*#__PURE__*/(0,jsx_runtime.jsx)(Toggle,{onChange:function onChange(value){return changeSettings(settings.disableQuickNote,value);},value:disableQuickNote})})]})]});}
+function Setting(_ref){var title=_ref.title,hint=_ref.hint,child=_ref.child;return/*#__PURE__*/(0,jsx_runtime.jsxs)("div",{className:pages_SettingsPage_module.setting_row,children:[/*#__PURE__*/(0,jsx_runtime.jsxs)("div",{className:pages_SettingsPage_module.setting_text,children:[/*#__PURE__*/(0,jsx_runtime.jsx)("div",{className:pages_SettingsPage_module.setting_title,children:title}),hint&&/*#__PURE__*/(0,jsx_runtime.jsx)("div",{className:pages_SettingsPage_module.setting_hint,children:hint})]}),child]});}function SettingsPage(){var _useBridge=useBridge(),getGlobal=_useBridge.getGlobal,navigateTo=_useBridge.navigateTo,changeSettings=_useBridge.changeSettings;var darkTheme=getGlobal(settings.darkTheme);var checkErrors=getGlobal(settings.checkErrors);var disableQuickNote=getGlobal(settings.disableQuickNote);return/*#__PURE__*/(0,jsx_runtime.jsxs)("div",{className:pages_SettingsPage_module.settings_root,children:[/*#__PURE__*/(0,jsx_runtime.jsxs)("div",{className:pages_SettingsPage_module.header,children:[/*#__PURE__*/(0,jsx_runtime.jsx)(templates_Button,{text:"Back",onClick:function onClick(){return navigateTo(screenKeys.MainMenu);}}),/*#__PURE__*/(0,jsx_runtime.jsx)("div",{className:pages_SettingsPage_module.header_title,children:"Settings"})]}),/*#__PURE__*/(0,jsx_runtime.jsxs)("div",{className:pages_SettingsPage_module.list,children:[/*#__PURE__*/(0,jsx_runtime.jsx)(Setting,{title:"Theme",hint:"Switches the board and menu colours",child:/*#__PURE__*/(0,jsx_runtime.jsx)(Toggle,{value:darkTheme,onChange:function onChange(value){return changeSettings(settings.darkTheme,value);},offText:"Light",onText:"Dark"})}),/*#__PURE__*/(0,jsx_runtime.jsx)(Setting,{title:"Check Errors",hint:"When ON, errors will show in red",child:/*#__PURE__*/(0,jsx_runtime.jsx)(Toggle,{onChange:function onChange(value){return changeSettings(settings.checkErrors,value);},value:checkErrors})}),/*#__PURE__*/(0,jsx_runtime.jsx)(Setting,{title:"Disable Quick Note",hint:"Hides the quicknote button",child:/*#__PURE__*/(0,jsx_runtime.jsx)(Toggle,{onChange:function onChange(value){return changeSettings(settings.disableQuickNote,value);},value:disableQuickNote})})]})]});}
 ;// ./src/screens.tsx
 /**
  * Lives here rather than in bridge.tsx so the dependency graph stays a tree: every page

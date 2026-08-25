@@ -7,13 +7,6 @@
       "dependencies": {},
       "url": "https://package.openupm.com"
     },
-    "com.reactunity.clearscript": {
-      "version": "0.23.2",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {},
-      "url": "https://package.openupm.com"
-    },
     "com.reactunity.core": {
       "version": "0.23.2",
       "depth": 0,
@@ -32,11 +25,10 @@
       "url": "https://package.openupm.com"
     },
     "com.reactunity.quickjs": {
-      "version": "0.23.2",
+      "version": "file:com.reactunity.quickjs",
       "depth": 0,
-      "source": "registry",
-      "dependencies": {},
-      "url": "https://package.openupm.com"
+      "source": "embedded",
+      "dependencies": {}
     },
     "com.unity.2d.animation": {
       "version": "12.0.2",

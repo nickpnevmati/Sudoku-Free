@@ -163,7 +163,7 @@ MonoBehaviour:
     ResourcesPath: 
     UseDevServer: 1
     DevServer: http://localhost:3001
-  EngineType: 1
+  EngineType: 3
   globals:
     Entries: []
   AdvancedOptions:
