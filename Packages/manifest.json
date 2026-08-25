@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "com.unity.2d.aseprite": "1.1.10",
-    "com.unity.2d.tilemap.extras": "4.1.0",
+    "com.unity.2d.tilemap.extras": "4.1.1",
     "com.unity.adaptiveperformance.google.android": "5.1.6",
     "com.unity.collab-proxy": "2.9.3",
     "com.unity.feature.2d": "2.0.1",
@@ -14,6 +14,7 @@
     "com.unity.timeline": "1.8.9",
     "com.unity.ugui": "2.0.0",
     "com.unity.visualscripting": "1.9.7",
+    "com.walcht.ide.neovim": "https://github.com/walcht/com.walcht.ide.neovim.git",
     "com.unity.modules.accessibility": "1.0.0",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",

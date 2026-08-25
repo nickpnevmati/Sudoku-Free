@@ -224,7 +224,7 @@ public class GameWindowController : AWindowController
 
     private void FinishedCheck()
     {
-        if (gridController.gridString.Replace(" ", "") != solution) return;
+        if (gridController.gridString.Replace(" ", "").Equals(solution)) return;
 
         Signals.Get<ShowConfirmationPopupSignal>().Dispatch(
             new ConfirmationPopupProperties(

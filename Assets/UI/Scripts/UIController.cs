@@ -35,7 +35,6 @@ public class UIController : MonoBehaviour
         Signals.Get<ShowConfirmationPopupSignal>().RemoveListener(ShowConfirmationPopup);
     }
 
-    
     private void ShowMainMenu() => uiFrame.OpenWindow(ScreenIds.mainMenu);
     private void OnStartNewGameSignal(int difficulty) => uiFrame.OpenWindow(ScreenIds.gameWindow);
     private void OnContinueGameSignal() => uiFrame.OpenWindow(ScreenIds.gameWindow);

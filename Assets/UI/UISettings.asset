@@ -9,10 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f69bc2766499e7f99b4bbd318a2f1902, type: 3}
-  m_Name: UISettingsMain
-  m_EditorClassIdentifier: Assembly-CSharp::deVoid.UIFramework.UISettings
-  templateUIPrefab: {fileID: 8946219357739177783, guid: a3171458ca8e08ca982a4b0bbcd4f73a, type: 3}
+  m_Script: {fileID: 11500000, guid: 1304b6d8fcd1818749c489decb1c0ea0, type: 3}
+  m_Name: UISettings
+  m_EditorClassIdentifier: 
+  templateUIPrefab: {fileID: 318387492768839060, guid: be0f6071b6e44659fa03f2ef54f1d118, type: 3}
   screensToRegister:
   - {fileID: 3983169440085832150, guid: 80d69a2c8fc7c7ca797718c703a5f63d, type: 3}
   - {fileID: 3983169440085832150, guid: 61c567441ece929d1b4197e73a305920, type: 3}
