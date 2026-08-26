@@ -1,0 +1,66 @@
+.grid_cell {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+    border-color: black;
+    border-width: 1px;
+}
+
+.grid_row {
+    flex-direction: row;
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+}
+
+.grid_separator_col {
+    background-color: black;
+    flex-grow: 0;
+    flex-shrink: 0;
+    width: 3px;
+}
+
+.grid_separator_row {
+    background-color: black;
+    flex-grow: 0;
+    flex-shrink: 0;
+    height: 3px;
+}
+
+.cell_number {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    margin: 0;
+    padding: 0;
+    font-size: 24px;
+    -unity-text-align: middle-center;
+}
+
+.notes_container {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-direction: column;
+}
+
+.note_row {
+    flex-direction: row;
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+    align-items: stretch;
+}
+
+.note_item {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-size: 10px;
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+}

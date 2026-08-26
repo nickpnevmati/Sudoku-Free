@@ -1,0 +1,41 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:Template name="Grid" src="project://database/Assets/UIToolkit/SudokuGrid/Grid.uxml?fileID=9197481963319205126&amp;guid=3a2307b7e6f0ffc51aa8d0e2cd95ae6b&amp;type=3#Grid" />
+    <Style src="project://database/Assets/UIToolkit/Stylesheet.uss?fileID=7433441132597879392&amp;guid=6e3e0ee6f8f903d08bebd37592b58449&amp;type=3#Stylesheet" />
+    <ui:VisualElement name="Header" style="flex-grow: 1; flex-direction: row; width: 100%; height: 10%; max-height: 10%; align-content: auto; align-self: auto; justify-content: space-between; padding-bottom: 3%; padding-top: 3%; padding-left: 3%; padding-right: 3%;">
+        <ui:Button text="Exit" name="ExitButton" style="max-width: 20%; flex-shrink: 1; flex-grow: 1;" />
+        <ui:Label name="GameTimer" />
+        <ui:Button text="Undo" name="UndoButton" style="flex-shrink: 1; flex-grow: 1; max-width: 20%;" />
+    </ui:VisualElement>
+    <ui:VisualElement name="GridContainer" style="flex-grow: 1;">
+        <ui:Instance template="Grid" style="flex-grow: 1;" />
+    </ui:VisualElement>
+    <ui:VisualElement name="Footer" style="flex-grow: 1; flex-direction: row; max-width: none; max-height: 30%; overflow: hidden; align-items: center; padding-top: 3%; padding-right: 3%; padding-bottom: 3%; padding-left: 3%;">
+        <ui:VisualElement name="NumpadContainer" class="numpad_container" style="padding-right: 1%;">
+            <ui:VisualElement name="Numpad" class="numpad_aspect">
+                <ui:VisualElement name="NumpadInner" class="numpad_inner">
+                    <ui:VisualElement name="NumpadRow1" class="numpad_row">
+                        <ui:Button text="1" name="1" class="numpad_button" />
+                        <ui:Button text="2" name="2" class="numpad_button" />
+                        <ui:Button text="3" name="3" class="numpad_button" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="NumpadRow2" class="numpad_row">
+                        <ui:Button text="4" name="4" class="numpad_button" />
+                        <ui:Button text="5" name="5" class="numpad_button" />
+                        <ui:Button text="6" name="6" class="numpad_button" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="NumpadRow3" class="numpad_row">
+                        <ui:Button text="7" name="7" class="numpad_button" />
+                        <ui:Button text="8" name="8" class="numpad_button" />
+                        <ui:Button text="9" name="9" class="numpad_button" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="ButtonsContainer" class="game_button_container" style="flex-grow: 1; overflow: visible; align-items: stretch; justify-content: space-between; flex-wrap: nowrap; flex-shrink: 1; opacity: 1; display: flex; align-self: stretch; align-content: auto; padding-bottom: 1%; padding-right: 1%; padding-top: 1%; padding-left: 1%;">
+            <ui:Button text="FastMode" name="FastModeButton" class="game_button" style="flex-shrink: 1;" />
+            <ui:Button text="Note" name="NoteModeButton" class="game_button" style="flex-shrink: 1;" />
+            <ui:Button text="Erase" name="EraseButton" class="game_button" style="flex-shrink: 1;" />
+            <ui:Button text="QuickNote" name="QuicknoteButton" class="game_button game_button_last" style="flex-shrink: 1;" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

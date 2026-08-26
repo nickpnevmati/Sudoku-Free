@@ -1,0 +1,131 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:Template name="Cell" src="project://database/Assets/UI%20Toolkit/Components/SudokuGrid/Cell.uxml?fileID=9197481963319205126&amp;guid=f90ffe5d303ea407d972ac4eebd950b4&amp;type=3#Cell" />
+    <Style src="project://database/Assets/UI%20Toolkit/Components/SudokuGrid/GridStyles.uss?fileID=7433441132597879392&amp;guid=92000bd4490bda54bab3a7be5e89d4c7&amp;type=3#GridStyles" />
+    <ui:VisualElement name="GridParent" style="flex-grow: 1; flex-direction: row;">
+        <ui:VisualElement class="grid_separator_col" />
+        <ui:VisualElement name="GridInner" style="flex-grow: 1;">
+            <ui:VisualElement class="grid_separator_row" />
+            <ui:VisualElement name="GridRow" class="grid_row" style="flex-grow: 1;">
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:VisualElement class="grid_separator_col" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:VisualElement class="grid_separator_col" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+            </ui:VisualElement>
+            <ui:VisualElement name="GridRow" class="grid_row" style="flex-grow: 1;">
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:VisualElement class="grid_separator_col" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:VisualElement class="grid_separator_col" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+            </ui:VisualElement>
+            <ui:VisualElement name="GridRow" class="grid_row" style="flex-grow: 1;">
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:VisualElement class="grid_separator_col" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:VisualElement class="grid_separator_col" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+            </ui:VisualElement>
+            <ui:VisualElement class="grid_separator_row" />
+            <ui:VisualElement name="GridRow" class="grid_row" style="flex-grow: 1;">
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:VisualElement class="grid_separator_col" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:VisualElement class="grid_separator_col" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+            </ui:VisualElement>
+            <ui:VisualElement name="GridRow" class="grid_row" style="flex-grow: 1;">
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:VisualElement class="grid_separator_col" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:VisualElement class="grid_separator_col" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+            </ui:VisualElement>
+            <ui:VisualElement name="GridRow" class="grid_row" style="flex-grow: 1;">
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:VisualElement class="grid_separator_col" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:VisualElement class="grid_separator_col" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+            </ui:VisualElement>
+            <ui:VisualElement class="grid_separator_row" />
+            <ui:VisualElement name="GridRow" class="grid_row" style="flex-grow: 1;">
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:VisualElement class="grid_separator_col" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:VisualElement class="grid_separator_col" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+            </ui:VisualElement>
+            <ui:VisualElement name="GridRow" class="grid_row" style="flex-grow: 1;">
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:VisualElement class="grid_separator_col" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:VisualElement class="grid_separator_col" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+            </ui:VisualElement>
+            <ui:VisualElement name="GridRow" class="grid_row" style="flex-grow: 1;">
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:VisualElement class="grid_separator_col" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:VisualElement class="grid_separator_col" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+                <ui:Instance template="Cell" class="grid_cell" />
+            </ui:VisualElement>
+            <ui:VisualElement class="grid_separator_row" />
+        </ui:VisualElement>
+        <ui:VisualElement class="grid_separator_col" />
+    </ui:VisualElement>
+</ui:UXML>
