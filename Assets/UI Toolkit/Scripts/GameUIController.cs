@@ -12,21 +12,105 @@ public class GameUIController : MonoBehaviour
     private UIDocument m_document;
     private VisualElement m_root;
 
+    // Buttons
+    Button undoButton, exitButton, fastModeButton, noteModeButton, eraseButton, quickNoteButton;
+
+    // Numpad
+    Button[] numpad = new Button[9];
+
+    // Grid
     private Cell[] gridCells;
     private HStack<string> history;
+
+    // Timer
+    private Label timer;
+
+    // Confirmation modal
+    private VisualElement m_confirmModal, m_confirmBackdrop;
+    private Label m_confirmTitle, m_confirmMessage;
+    private Button m_confirmButton, m_cancelButton;
+    private Action m_onConfirm;
 
     private Task<(string, string)> generatePuzzleTask;
     private CancellationToken token;
     private string puzzle, solution;
 
     // Flags
-    private bool m_fastMode, m_noteMode, m_QuickNote;
+    private bool m_fastMode, m_noteMode, m_QuickNote, m_eraseMode;
+    private int? m_selectedCell, m_selectedNumber;
+
+    private void ConstructGrid()
+    {
+        VisualElement grid_root = m_root.Q<VisualElement>("GridInner");
+        int index = 0;
+        gridCells = new Cell[81];
+        foreach (var row in grid_root.Children())
+        {
+            if (!row.name.Equals("GridRow")) continue;
+            foreach (var cell in row.Children())
+            {
+                if (!cell.name.Equals("GridCell")) continue;
+                int cellIndex = index;
+                cell.RegisterCallback<PointerDownEvent>(delegate { OnCellClicked(cellIndex); });
+                gridCells[index] = new Cell(cell);
+                index++;
+            }
+        }
+    }
+
+    private void ConstructNumpad()
+    {
+        var numpadRoot = m_root.Q<VisualElement>("Numpad");
+        for (int i = 0; i < 9; i++)
+        {
+            numpad[i] = numpadRoot.Q<Button>((i + 1).ToString());
+            int number = i + 1;
+            numpad[i].clicked += delegate { OnNumpadClicked(number); };
+        }
+    }
+
+    private void RegisterButtons()
+    {
+        undoButton = m_root.Q<Button>("UndoButton");
+        exitButton = m_root.Q<Button>("ExitButton");
+        fastModeButton = m_root.Q<Button>("FastModeButton");
+        quickNoteButton = m_root.Q<Button>("QuickNoteButton");
+        eraseButton = m_root.Q<Button>("EraseButton");
+        noteModeButton = m_root.Q<Button>("NoteModeButton");
+
+        undoButton.clicked += Undo;
+        exitButton.clicked += ExitRequested;
+        fastModeButton.clicked += OnFastModeToggled;
+        quickNoteButton.clicked += QuickNote;
+        eraseButton.clicked += OnEraseModeToggled;
+        noteModeButton.clicked += OnNoteModeToggled;
+    }
+
+    private void ConstructConfirmModal()
+    {
+        m_confirmModal = m_root.Q<VisualElement>("ConfirmModal");
+        m_confirmBackdrop = m_root.Q<VisualElement>("ConfirmBackdrop");
+        m_confirmTitle = m_root.Q<Label>("ConfirmTitle");
+        m_confirmMessage = m_root.Q<Label>("ConfirmMessage");
+        m_confirmButton = m_root.Q<Button>("ConfirmButton");
+        m_cancelButton = m_root.Q<Button>("CancelButton");
+
+        m_confirmButton.clicked += OnConfirmClicked;
+        m_cancelButton.clicked += HideConfirmation;
+        // Clicks on the panel bubble up here too, so only dismiss when the backdrop itself was hit
+        m_confirmBackdrop.RegisterCallback<ClickEvent>(e => { if (e.target == m_confirmBackdrop) HideConfirmation(); });
+
+        HideConfirmation();
+    }
+
+    // ------------------ Unity Functions -----------------
 
     private void Awake()
     {
         if (Instance != null)
         {
             Destroy(gameObject);
+            return;
         }
         else
         {
@@ -35,6 +119,10 @@ public class GameUIController : MonoBehaviour
         m_document = GetComponent<UIDocument>();
         m_root = m_document.rootVisualElement;
         ConstructGrid();
+        ConstructNumpad();
+        RegisterButtons();
+        ConstructConfirmModal();
+        timer = m_root.Q<Label>("GameTimer");
         token = destroyCancellationToken;
     }
 
@@ -43,12 +131,20 @@ public class GameUIController : MonoBehaviour
         GameLoaded();
     }
 
+    // ------------------- Setup Function ----------------------
+
     public void RequestStartGame(bool continueFlag, int difficulty)
     {
         if (continueFlag)
-            PuzzleLoader.LoadSaved();
+        {
+            (puzzle, solution, history) = PuzzleLoader.LoadSaved();
+            StartGame((puzzle, solution));
+        }
         else
+        {
             generatePuzzleTask = Task.Run(() => PuzzleGenerator.Instance.Generate((PuzzleDifficulty)difficulty, token), token);
+            history = new HStack<string>();
+        }
     }
 
     private void GameLoaded()
@@ -65,42 +161,288 @@ public class GameUIController : MonoBehaviour
     private void StartGame((string, string) result)
     {
         (puzzle, solution) = result;
-        for (int i = 0; i < solution.Length; i++)
-            gridCells[i].SetNumber(puzzle[i].ToString() == "0" ? "" : puzzle[i].ToString());
+        m_selectedCell = null;
+        m_selectedNumber = null;
+        ClearHighlights();
+
+        // Continue: pick up where the history left off. New game (or a save with
+        // no history): start from the givens and save that, so it replaces any
+        // previous save straight away and gives Undo a floor to stop at
+        if (history.Count > 0)
+        {
+            GridFromString(history.Last);
+        }
+        else
+        {
+            GridFromString(puzzle);
+            SaveGame();
+        }
     }
 
-    private void ConstructGrid()
+
+    // ----------------- Event Handlers ---------------------
+
+    private void OnCellClicked(int index)
     {
-        VisualElement grid_root = m_root.Q<VisualElement>("GridInner");
-        int index = 0;
-        gridCells = new Cell[81];
-        foreach (var row in grid_root.Children())
+        if (m_fastMode)
         {
-            if (!row.name.Equals("GridRow")) continue;
-            foreach (var cell in row.Children())
+            if (!gridCells[index].number.Equals(""))
             {
-                if (!cell.name.Equals("GridCell")) continue;
-                gridCells[index] = new Cell(cell);
-                index++;
+                m_selectedNumber = int.Parse(gridCells[index].number);
+                HighlightCells();
+                return;
+            }
+
+            if (m_selectedNumber == null) return;
+
+            int selectedNumber = (int)m_selectedNumber;
+            if (m_noteMode) ToggleNote(index, selectedNumber);
+            else if (m_eraseMode) EraseCell(index);
+            else SetNumber(index, selectedNumber);
+
+            HighlightNumpad();
+            HighlightCells();
+
+            SaveGame();
+        }
+        else
+        {
+            m_selectedCell = index;
+            ClearHighlights();
+            string selected = gridCells[index].number;
+
+            if (selected.Equals(""))
+            {
+                m_selectedNumber = null;
+                return;
+            }
+
+            int number = int.Parse(selected);
+            m_selectedNumber = number;
+            HighlightCells();
+        }
+    }
+
+    private void OnNumpadClicked(int number)
+    {
+        if (m_fastMode)
+        {
+            m_selectedNumber = number;
+            HighlightCells();
+            HighlightNumpad();
+        }
+        else
+        {
+            if (m_selectedCell == null) return;
+            int selectedCell = (int)m_selectedCell;
+
+            if (m_noteMode) ToggleNote(selectedCell, number);
+            else if (m_eraseMode) EraseCell(selectedCell);
+            else SetNumber(selectedCell, number);
+
+            HighlightCells();
+
+            SaveGame();
+        }
+    }
+
+    private void OnFastModeToggled()
+    {
+        m_fastMode = !m_fastMode;
+
+        if (!m_fastMode)
+        {
+            m_selectedNumber = null;
+            HighlightNumpad();
+        }
+        else
+        {
+            m_selectedNumber = m_selectedCell == null ? 1 : int.Parse(gridCells[(int)m_selectedCell].number);
+            HighlightNumpad();
+        }
+
+        throw new NotImplementedException();
+    }
+
+    private void OnEraseModeToggled()
+    {
+        m_eraseMode = !m_eraseMode;
+    }
+
+    private void OnNoteModeToggled()
+    {
+        m_noteMode = !m_noteMode;
+    }
+
+    private void QuickNote()
+    {
+        for (int i = 0; i < gridCells.Length; i++)
+        {
+            if (!gridCells[i].number.Equals("")) continue;
+
+            var (col, row) = ColumnsRows(i);
+            var seen = new HashSet<int>();
+            foreach (int idx in col.Concat(row).Concat(Box(i)))
+            {
+                if (gridCells[idx].number.Equals("")) continue;
+
+                seen.Add(int.Parse(gridCells[idx].number));
+            }
+
+            for (int num = 1; num <= 9; num++)
+            {
+                if (seen.Contains(num)) continue;
+                gridCells[i].SetNote(num);
+            }
+        }
+        SaveGame();
+    }
+
+    private void Undo()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void ExitRequested()
+    {
+        ShowConfirmation(
+            title: "Exit Game",
+            message: "Are you sure you want to exit the game?",
+            confirmText: "Yes, exit",
+            cancelText: "No, stay",
+            onConfirm: UIMasterController.Instance.NavigateToMenu);
+    }
+
+    private void OnConfirmClicked()
+    {
+        // Hide first, so onConfirm is free to open another prompt
+        var onConfirm = m_onConfirm;
+        HideConfirmation();
+        onConfirm?.Invoke();
+    }
+
+    // ------------------- Visuals ----------------
+
+    private void HighlightCells()
+    {
+        if (m_selectedCell != null)
+        {
+            int selected = (int)m_selectedCell;
+            gridCells[selected].SetHighlight(Color.blue);
+            (int[], int[]) colrows = ColumnsRows(selected);
+            foreach (int col in colrows.Item1)
+                gridCells[col].SetHighlight(Color.cyan);
+            foreach (int row in colrows.Item2)
+                gridCells[row].SetHighlight(Color.cyan);
+
+            foreach (var idx in Box(selected))
+                gridCells[idx].SetHighlight(Color.cyan);
+        }
+
+
+        if (m_selectedNumber != null)
+        {
+            for (int i = 0; i < gridCells.Length; i++)
+            {
+                if (gridCells[i].number != m_selectedNumber.ToString()) continue;
+
+                gridCells[i].SetHighlight(Color.blue);
             }
         }
     }
 
-    private void FinishedCheck() => GridToString().Equals(solution);
-    private void IsPlacementCorrect(int cellIndex, string number) => solution[cellIndex].ToString().Equals(number);
+    private void ClearHighlights()
+    {
+        foreach (var cell in gridCells) cell.ClearHighlight();
+    }
+
+    private void ShowConfirmation(string title, string message, string confirmText, string cancelText, Action onConfirm)
+    {
+        m_confirmTitle.text = title;
+        m_confirmMessage.text = message;
+        m_confirmButton.text = confirmText;
+        m_cancelButton.text = cancelText;
+        m_onConfirm = onConfirm;
+        m_confirmModal.style.display = DisplayStyle.Flex;
+    }
+
+    private void HideConfirmation()
+    {
+        m_onConfirm = null;
+        m_confirmModal.style.display = DisplayStyle.None;
+    }
+
+    private void HighlightNumpad()
+    {
+        for (int i = 0; i < numpad.Length; i++)
+            numpad[i].EnableInClassList("numpad_button_active", m_selectedNumber != null && m_selectedNumber == i + 1);
+    }
+
+
+    // ------------------- Utils ------------------------
+
+    // TODO history on the following 3 methods
+    private void SetNumber(int cell, int number)
+    {
+        gridCells[cell].ClearAll();
+        gridCells[cell].SetNumber(number.ToString());
+    }
+
+    private void ToggleNote(int cell, int number)
+    {
+        gridCells[cell].ToggleNote(number);
+    }
+
+    private void EraseCell(int cell)
+    {
+        gridCells[cell].ClearAll();
+    }
+
+    private bool FinishedCheck() => GridToString().Equals(solution);
+    private bool IsPlacementCorrect(int cellIndex, string number) => solution[cellIndex].ToString().Equals(number);
+
+    private void SaveGame()
+    {
+        history.Push(GridStateToString());
+        // A solved grid has nothing left to continue
+        if (FinishedCheck()) PuzzleLoader.DeleteSave();
+        else PuzzleLoader.SavePuzzle(puzzle, solution, history);
+    }
+
+    /// <summary>
+    /// Numbers and notes, for history and saves: 81 digits ('0' for blank),
+    /// then 9 '0'/'1' note flags per cell.
+    /// </summary>
+    private string GridStateToString()
+    {
+        var sb = new System.Text.StringBuilder(GridToString(), 81 * 10);
+        foreach (var cell in gridCells) sb.Append(cell.NotesToString());
+        return sb.ToString();
+    }
+
     private string GridToString()
     {
         string s = "";
-        foreach (var cell in gridCells) s += cell.number;
+        foreach (var cell in gridCells) s += cell.number.Equals("") ? "0" : cell.number;
         return s;
     }
+
+    /// <summary>
+    /// Accepts numbers only (81 chars, e.g. a puzzle string) or the full
+    /// numbers + notes format from GridStateToString (810 chars).
+    /// </summary>
     private void GridFromString(string state)
     {
-        if (state.Length != gridCells.Length)
-            throw new Exception(); // TODO give this some message
-        for (int i = 0; i < state.Length; i++)
+        int cells = gridCells.Length;
+        bool hasNotes = state.Length == cells * 10;
+        if (state.Length != cells && !hasNotes)
+            throw new Exception($"Grid state must be {cells} or {cells * 10} chars, got {state.Length}");
+
+        for (int i = 0; i < cells; i++)
         {
-            gridCells[i].SetNumber(state[i].ToString());
+            gridCells[i].SetNumber(state[i] == '0' ? "" : state[i].ToString());
+            if (hasNotes) gridCells[i].NotesFromString(state.Substring(cells + i * 9, 9));
+            else gridCells[i].ClearAll();
         }
     }
 
@@ -117,6 +459,17 @@ public class GameUIController : MonoBehaviour
         }
         return (cols, rows);
     }
+
+    private int[] Box(int cellIndex)
+    {
+        int[] box = new int[9];
+        int rowStart = cellIndex / 9 - cellIndex / 9 % 3;
+        int colStart = cellIndex % 9 - cellIndex % 9 % 3;
+        for (int i = 0; i < 9; i++)
+            box[i] = (rowStart + i / 3) * 9 + colStart + i % 3;
+        return box;
+    }
+
 
     private class Cell
     {
@@ -145,62 +498,46 @@ public class GameUIController : MonoBehaviour
 
         public string number => label.text;
         public void SetNumber(string number) => label.text = number;
-        public void SetNote(int number) => notes[number].style.display = DisplayStyle.Flex;
-        public void ClearNote(int number) => notes[number].style.display = DisplayStyle.None;
-        public void ToggleANote(int number)
+        public void SetNote(int number) => notes[number - 1].style.display = DisplayStyle.Flex;
+        public void ClearNote(int number) => notes[number - 1].style.display = DisplayStyle.None;
+        public void ToggleNote(int number)
         {
-            var note = notes[number];
+            var note = notes[number - 1];
             note.style.display = note.style.display == DisplayStyle.Flex ? DisplayStyle.None : DisplayStyle.Flex;
         }
         public void ClearAll()
         {
-            for (int i = 0; i < notes.Length; i++)
+            for (int i = 1; i <= notes.Length; i++)
                 ClearNote(i);
         }
 
-        public (char, string) GetState()
+        public void SetHighlight(Color c)
         {
-            char numberChar = label.text.ToCharArray()[0];
-            string notes = "";
-            foreach (var n in this.notes)
-            {
-                notes += n.text;
-            }
-
-            return (numberChar, notes);
+            root.style.backgroundColor = c;
         }
 
-        public void SetState(string number, string notes)
+        public void ClearHighlight()
         {
-            label.text = number;
+            root.style.backgroundColor = new Color(0, 0, 0, 0);
+        }
+
+        public bool HasNote(int number) => notes[number - 1].style.display == DisplayStyle.Flex;
+
+        public string NotesToString()
+        {
+            var chars = new char[notes.Length];
+            for (int i = 0; i < notes.Length; i++)
+                chars[i] = HasNote(i + 1) ? '1' : '0';
+            return new string(chars);
+        }
+
+        public void NotesFromString(string flags)
+        {
             for (int i = 0; i < notes.Length; i++)
             {
-                if (notes[i] == '0') continue;
-                ToggleANote(i);
+                if (flags[i] == '1') SetNote(i + 1);
+                else ClearNote(i + 1);
             }
-        }
-    }
-
-    private class GridState
-    {
-        string state = new string('0', 81);
-        string[] notes = new string[81];
-
-        public GridState(Cell[] grid)
-        {
-            for (int i = 0; i < 81; i++)
-            {
-                FromCell(grid[i], i);
-            }
-        }
-
-        public void FromCell(Cell cell, int index)
-        {
-            (char number, string notes) = cell.GetState();
-            char[] stateArray = state.ToCharArray();
-            stateArray[index] = number;
-            state = stateArray.ToString();
-            this.notes[index] = notes;
         }
     }
 
@@ -209,6 +546,7 @@ public class GameUIController : MonoBehaviour
         private List<T> innerList;
 
         public int Count => innerList.Count;
+        public T Last => innerList.Last();
 
         public HStack()
         {
@@ -220,10 +558,7 @@ public class GameUIController : MonoBehaviour
             innerList = new List<T>(collection);
         }
 
-        public void Push(T value)
-        {
-            innerList.Append(value);
-        }
+        public void Push(T value) => innerList.Add(value);
 
         public T Pop()
         {
@@ -236,6 +571,17 @@ public class GameUIController : MonoBehaviour
         {
             Pop();
             return innerList.Last();
+        }
+
+        public static implicit operator HStack<T>(T[] array)
+        {
+            HStack<T> stack = new HStack<T>(array);
+            return stack;
+        }
+
+        public static implicit operator T[](HStack<T> stack)
+        {
+            return stack.innerList.ToArray();
         }
     }
 }

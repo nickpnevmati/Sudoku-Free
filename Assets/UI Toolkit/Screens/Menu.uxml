@@ -1,9 +1,12 @@
 <ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:Template name="DifficultySelect" src="project://database/Assets/UI%20Toolkit/Components/DifficultySelect.uxml?fileID=9197481963319205126&amp;guid=a63162969fde552c790aa87f374f246f&amp;type=3#DifficultySelect" />
+    <Style src="project://database/Assets/UI%20Toolkit/Stylesheet.uss?fileID=7433441132597879392&amp;guid=6e3e0ee6f8f903d08bebd37592b58449&amp;type=3#Stylesheet" />
     <ui:VisualElement style="flex-grow: 1; padding-left: 20%; padding-right: 20%; align-items: stretch; align-self: stretch; align-content: center; justify-content: center;">
         <ui:Label text="Sudoku Free" name="Title" style="white-space: nowrap; text-overflow: clip; align-self: center; align-content: auto; font-size: 90px; -unity-text-align: middle-center;" />
-        <ui:Button text="Play" name="PlayButton" />
-        <ui:Button text="Continue" name="ContinueButton" />
-        <ui:Button text="Settings" name="SettingsButton" />
-        <ui:Button text="Exit" name="ExitButton" />
+        <ui:Button text="Play" name="PlayButton" class="menu_button" />
+        <ui:Button text="Continue" name="ContinueButton" class="menu_button" />
+        <ui:Button text="Settings" name="SettingsButton" class="menu_button" />
+        <ui:Button text="Exit" name="ExitButton" class="menu_button" />
     </ui:VisualElement>
+    <ui:Instance template="DifficultySelect" name="DifficultyModal" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; display: none;" />
 </ui:UXML>

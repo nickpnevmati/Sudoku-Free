@@ -1,0 +1,13 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI%20Toolkit/Components/Modal.uss?fileID=7433441132597879392&amp;guid=b72c793453ac42609706355c57278b39&amp;type=3#Modal" />
+    <ui:VisualElement name="ConfirmBackdrop" class="modal_backdrop">
+        <ui:VisualElement name="ConfirmPanel" class="modal_panel">
+            <ui:Label text="Title" name="ConfirmTitle" class="modal_title" picking-mode="Ignore" />
+            <ui:Label text="Message" name="ConfirmMessage" class="modal_message" picking-mode="Ignore" />
+            <ui:VisualElement name="ConfirmButtonRow" class="modal_button_row">
+                <ui:Button text="Cancel" name="CancelButton" class="modal_button" />
+                <ui:Button text="Confirm" name="ConfirmButton" class="modal_button" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

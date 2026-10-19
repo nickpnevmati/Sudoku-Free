@@ -1,0 +1,13 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI%20Toolkit/Components/Modal.uss?fileID=7433441132597879392&amp;guid=b72c793453ac42609706355c57278b39&amp;type=3#Modal" />
+    <Style src="project://database/Assets/UI%20Toolkit/Components/DifficultySelect.uss?fileID=7433441132597879392&amp;guid=17f09c98c9bc48d8b9766d686933558a&amp;type=3#DifficultySelect" />
+    <ui:VisualElement name="DifficultyBackdrop" class="modal_backdrop">
+        <ui:VisualElement name="DifficultyPanel" class="modal_panel">
+            <ui:Label text="Select Difficulty" name="DifficultyTitle" class="modal_title" picking-mode="Ignore" />
+            <ui:Button text="Easy" name="EasyButton" class="difficulty_button" />
+            <ui:Button text="Medium" name="MediumButton" class="difficulty_button" />
+            <ui:Button text="Hard" name="HardButton" class="difficulty_button" />
+            <ui:Button text="Evil" name="EvilButton" class="difficulty_button" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

@@ -1,3 +1,21 @@
+/* Sizes are in reference pixels: Panel Settings scales the UI from a 1080x1920
+   reference, so these grow and shrink with the screen. Unstyled text would fall
+   back to the theme's 12px, which is tiny at this resolution. */
+:root {
+    font-size: 44px;
+}
+
+.unity-button {
+    font-size: 44px;
+}
+
+.menu_button {
+    font-size: 56px;
+    min-height: 140px;
+    margin-top: 2%;
+    margin-bottom: 2%;
+}
+
 .numpad_container {
     width: 50%;
     max-width: 50%;
@@ -43,15 +61,27 @@
     min-width: 0;
     min-height: 0;
     margin: 2%;
+    font-size: 72px;
+}
+
+.numpad_button.numpad_button_active {
+    flex-basis: 0;
+    flex-grow: 1;
+    flex-shrink: 1;
+    width: auto;
+    height: auto;
+    min-width: 0;
+    min-height: 0;
+    margin: 2%;
 }
 
 .custom_toggle {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    min-height: 44px;
-    padding-left: 12px;
-    padding-right: 12px;
+    min-height: 110px;
+    padding-left: 24px;
+    padding-right: 24px;
     border-bottom-width: 1px;
     border-bottom-color: rgba(255, 255, 255, 0.1);
 }
@@ -59,7 +89,7 @@
 .custom_toggle_text {
     flex-grow: 1;
     flex-shrink: 1;
-    font-size: 30px;
+    font-size: 48px;
     -unity-text-align: middle-left;
     white-space: normal;
 }
@@ -67,8 +97,8 @@
 .custom_toggle_checkbox_parent {
     flex-grow: 0;
     flex-shrink: 0;
-    width: 26px;
-    height: 26px;
+    width: 56px;
+    height: 56px;
     align-items: center;
     justify-content: center;
     border-width: 2px;
@@ -110,9 +140,11 @@
 .game_button {
     flex-grow: 1;
     flex-shrink: 1;
-    margin-bottom: 5%
+    margin-bottom: 5%;
 }
 
 .game_button_last {
     margin-bottom: 0;
 }
+
+

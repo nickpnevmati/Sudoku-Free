@@ -2,22 +2,22 @@
     <Style src="project://database/Assets/UI%20Toolkit/Stylesheet.uss?fileID=7433441132597879392&amp;guid=6e3e0ee6f8f903d08bebd37592b58449&amp;type=3#Stylesheet" />
     <Style src="project://database/Assets/UI%20Toolkit/Components/SudokuGrid/GridStyles.uss?fileID=7433441132597879392&amp;guid=92000bd4490bda54bab3a7be5e89d4c7&amp;type=3#GridStyles" />
     <ui:VisualElement name="GridCell" class="grid_cell" style="flex-grow: 1;">
-        <ui:Label text="#" name="CellButton" class="cell_number" />
-        <ui:VisualElement name="NotesContainer" class="notes_container">
-            <ui:VisualElement name="NoteRow" class="note_row">
-                <ui:Label text="1" name="Note1" class="note_item" />
-                <ui:Label text="2" name="Note2" class="note_item" />
-                <ui:Label text="3" name="Note3" class="note_item" />
+        <ui:Label text="#" name="CellButton" class="cell_number" picking-mode="Ignore" />
+        <ui:VisualElement name="NotesContainer" class="notes_container" picking-mode="Ingore" >
+            <ui:VisualElement name="NoteRow" class="note_row" picking-mode="Ingore">
+                <ui:Label text="1" name="Note1" class="note_item" picking-mode="Ignore" />
+                <ui:Label text="2" name="Note2" class="note_item" picking-mode="Ignore" />
+                <ui:Label text="3" name="Note3" class="note_item" picking-mode="Ignore" />
             </ui:VisualElement>
-            <ui:VisualElement name="NoteRow" class="note_row">
-                <ui:Label text="4" name="Note4" class="note_item" />
-                <ui:Label text="5" name="Note5" class="note_item" />
-                <ui:Label text="6" name="Note6" class="note_item" />
+            <ui:VisualElement name="NoteRow" class="note_row" picking-mode="Ingore">
+                <ui:Label text="4" name="Note4" class="note_item" picking-mode="Ignore" />
+                <ui:Label text="5" name="Note5" class="note_item" picking-mode="Ignore" />
+                <ui:Label text="6" name="Note6" class="note_item" picking-mode="Ignore" />
             </ui:VisualElement>
-            <ui:VisualElement name="NoteRow" class="note_row">
-                <ui:Label text="7" name="Note7" class="note_item" />
-                <ui:Label text="8" name="Note8" class="note_item" />
-                <ui:Label text="9" name="Note9" class="note_item" />
+            <ui:VisualElement name="NoteRow" class="note_row" picking-mode="Ingore">
+                <ui:Label text="7" name="Note7" class="note_item" picking-mode="Ignore" />
+                <ui:Label text="8" name="Note8" class="note_item" picking-mode="Ignore" />
+                <ui:Label text="9" name="Note9" class="note_item" picking-mode="Ignore" />
             </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>

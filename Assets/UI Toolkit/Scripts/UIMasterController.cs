@@ -1,4 +1,3 @@
-using UnityEditor.Search;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -35,7 +34,11 @@ public class UIMasterController : MonoBehaviour
         m_current_screen = screen;
     }
 
-    public void NavigateToMenu() => NavigateTo(m_menu_root);
+    public void NavigateToMenu()
+    {
+        m_menu.GetComponent<MenuUIController>().Refresh();
+        NavigateTo(m_menu_root);
+    }
     public void NavigateToSettings() => NavigateTo(m_settings_root);
     public void NavigateToGame(bool continueFlag, int difficulty)
     {
