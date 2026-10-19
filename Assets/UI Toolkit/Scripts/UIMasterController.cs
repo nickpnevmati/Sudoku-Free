@@ -37,5 +37,9 @@ public class UIMasterController : MonoBehaviour
 
     public void NavigateToMenu() => NavigateTo(m_menu_root);
     public void NavigateToSettings() => NavigateTo(m_settings_root);
-    public void NavigateToGame() => NavigateTo(m_game_root);
+    public void NavigateToGame(bool continueFlag, int difficulty)
+    {
+        NavigateTo(m_game_root);
+        GameUIController.Instance.RequestStartGame(continueFlag, difficulty);
+    }
 }

@@ -39,13 +39,12 @@ public class MenuUIController : MonoBehaviour
 
     private void OnNewGameClicked(MouseUpEvent e)
     {
-        GameUIController.Instance.continueFlag = false;
-        UIMasterController.Instance.NavigateToGame();
+        // TODO open difficulty select modal
+        UIMasterController.Instance.NavigateToGame(false, 0);
     }
     private void OnContinueClicked(MouseUpEvent e)
     {
-        GameUIController.Instance.continueFlag = true;
-        UIMasterController.Instance.NavigateToGame();
+        UIMasterController.Instance.NavigateToGame(true, 0);
     }
     private void OnSettingsClicked(MouseUpEvent e) => UIMasterController.Instance.NavigateToSettings();
     private void OnExitClicked(MouseUpEvent e) => Application.Quit();
