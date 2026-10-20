@@ -36,8 +36,8 @@
 - [x] Reset fast / note / erase modes when a new game starts
 - [x] Win animation (respect "Disable Win Animation" setting) — `PlayWinAnimation`: cells pulse in rings from the last number placed (`cell_win` / `cell_win_anim` in `GridStyles.uss`), then the prompt; stopped by `StopWinAnimation` on new game / exit
 - [x] Game timer (`GameTimer` label, `FormatTime`)
-  - [ ] Timer isn't saved, so Continue restarts it at 0
-  - [ ] Timer keeps running on the menu / settings screens and with the exit modal open (`Update` always ticks)
+  - [x] Timer isn't saved, so Continue restarts it at 0
+  - [x] Timer only ticks while a game is in progress (`IsGameInProgress`): paused on the menu / settings, with the exit or win prompt open, while generating, and once solved
 - [x] Loading indicator while a puzzle is generating — `LoadingOverlay.uxml` (spinner + Cancel); opaque, so it also blocks input to the old grid; timer paused meanwhile
   - [x] "Stuck" overlay was the `GameUIController` component being disabled in the scene (Awake ran, Update didn't)
 - [x] Prevent editing given clues
@@ -66,6 +66,12 @@
 - [x] `GameUIController.Awake` missing `return` after destroying a duplicate
 - [x] `GridFromString` throws a bare `Exception()` — add a message
 - [x] Menu buttons use `MouseUpEvent`; switch to `button.clicked` for reliable touch input
+### General
+- [ ] Notes aren't highlighted
+### Normal Mode
+- [ ] Erase doesn't work - should turn into a button (not toggle) under normal mode
+- [ ] Placing a number doesn't re-trigger highlights
+- [ ] Numpad is highlighted when number selected
 
 ## Menu
 - [x] Difficulty select (modal in `Menu.uxml`, wired in `MenuUIController`)
@@ -78,7 +84,7 @@
 - [x] Back button to menu
 - [x] Persist settings — static `GameSettings` class, backed by PlayerPrefs
 - [x] Dark Theme toggle (calls `UIMasterController.SetDarkTheme`)
-- [ ] Use `var(--color-…)` for any new colours instead of hard-coding them, or dark mode will miss them
+- [x] Use `var(--color-…)` for any new colours instead of hard-coding them, or dark mode will miss them — *audited: no hard-coded colours left in USS/UXML/C# (only a transparent `rgba(0,0,0,0)`, which is theme-independent); keep it that way for new styles*
 - [x] Check Errors toggle — read in `HighlightCells` on every `Refresh()`
 - [x] Disable Quicknote toggle — hides the QuickNote button when a game starts
   - [x] Mode buttons line up with the numpad with or without QuickNote — footer is one half-height aspect box (`footer_aspect`), both columns share its height and a 10px margin; `game_button_last` removed
@@ -90,9 +96,9 @@
 - [x] Remove `Resources/puzzles.txt` and `PuzzleLoader.LoadPuzzle` (or keep as offline fallback)
 - [x] Remove Adaptive Performance package if not needed (mobile notifications package is gone, but `Assets/Editor/com.unity.mobile.notifications/` settings remain)
 - [x] Fix outdated template/style paths in `Game.uxml` (`Assets/UIToolkit/...` → `Assets/UI Toolkit/...`)
-- [ ] Remove leftover `Debug.Log`s in `StartGame` and `GridFromString` (the latter prints 810 chars on every Continue/Undo)
-- [ ] `m_quickNote` is assigned but never read (compiler warning CS0414) — remove it
-- [ ] Save file rewrites the whole history (810 chars per move) on every move — fine for now, but grows with long games; consider capping Undo depth
+- [x] Remove leftover `Debug.Log`s in `StartGame` and `GridFromString` (the latter prints 810 chars on every Continue/Undo)
+- [x] `m_quickNote` is assigned but never read (compiler warning CS0414) — remove it
+- [x] Save file rewrites the whole history (810 chars per move) on every move — Undo depth capped at `k_maxHistory` (200, ~160 KB save max) via `HStack.TrimOldest` in `SaveGame`
 
 ## Testing
 - [ ] Test on a real Android device (touch input, safe areas, different aspect ratios)

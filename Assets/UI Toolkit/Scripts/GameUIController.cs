@@ -42,11 +42,15 @@ public class GameUIController : MonoBehaviour
     private string puzzle, solution;
 
     // Flags
-    private bool m_fastMode, m_noteMode, m_quickNote, m_eraseMode, m_solved;
+    private bool m_fastMode, m_noteMode, m_eraseMode, m_solved;
 
     // Win animation: pending steps, so a new game or exit can stop it part-way
     private readonly List<IVisualElementScheduledItem> m_winAnimation = new List<IVisualElementScheduledItem>();
     const long k_winRippleStepMs = 70, k_winFlashMs = 350, k_winPromptDelayMs = 400;
+
+    // Undo depth. Each entry is 810 chars and the whole history is rewritten on every
+    // move, so this keeps the save file under ~160 KB however long the game runs
+    const int k_maxHistory = 200;
     private int? m_selectedCell, m_selectedNumber;
 
     private void ConstructGrid()
@@ -160,9 +164,20 @@ public class GameUIController : MonoBehaviour
         }
 
         // Update Game Timer
-        if (!m_solved) gameTime += Time.deltaTime;
+        if (IsGameInProgress) gameTime += Time.deltaTime;
         timer.text = FormatTime(gameTime);
     }
+
+    /// <summary>
+    /// True only while the player can actually play: a puzzle is loaded and unsolved, the
+    /// game screen is showing (UIMasterController hides it on the menu / settings) and no
+    /// prompt (exit, win) is open. Generation is already handled by Update's early return.
+    /// </summary>
+    private bool IsGameInProgress =>
+        puzzle != null
+        && !m_solved
+        && m_root.style.display != DisplayStyle.None
+        && m_confirmModal.style.display != DisplayStyle.Flex;
 
     // ------------------- Setup Function ----------------------
 
@@ -170,7 +185,7 @@ public class GameUIController : MonoBehaviour
     {
         if (continueFlag)
         {
-            (puzzle, solution, history) = PuzzleLoader.LoadSaved();
+            (puzzle, solution, history, gameTime) = PuzzleLoader.LoadSaved();
             StartGame((puzzle, solution));
         }
         else
@@ -194,7 +209,11 @@ public class GameUIController : MonoBehaviour
         DisposeGenerationCts();
         HideLoading();
 
-        if (finished.IsCompletedSuccessfully) StartGame(finished.Result);
+        if (finished.IsCompletedSuccessfully)
+        {
+            StartGame(finished.Result);
+            gameTime = 0f;
+        }
         else if (finished.IsFaulted)
         {
             Debug.LogException(finished.Exception);
@@ -222,7 +241,6 @@ public class GameUIController : MonoBehaviour
 
     private void StartGame((string, string) result)
     {
-        Debug.Log("StartGame");
         (puzzle, solution) = result;
         m_selectedCell = null;
         m_selectedNumber = null;
@@ -230,12 +248,9 @@ public class GameUIController : MonoBehaviour
         m_fastMode = false;
         m_noteMode = false;
         m_eraseMode = false;
-        m_quickNote = false;
         m_solved = false;
         StopWinAnimation();
         quickNoteButton.style.display = GameSettings.DisableQuickNote ? DisplayStyle.None : DisplayStyle.Flex;
-
-        gameTime = 0f;
 
         // Continue: pick up where the history left off. New game (or a save with
         // no history): start from the givens and save that, so it replaces any
@@ -378,7 +393,7 @@ public class GameUIController : MonoBehaviour
         string last = history.PopGetPrevious();
         GridFromString(last);
         Refresh();
-        PuzzleLoader.SavePuzzle(puzzle, solution, history);
+        PuzzleLoader.SavePuzzle(puzzle, solution, history, gameTime);
     }
 
     private void ExitRequested()
@@ -395,6 +410,7 @@ public class GameUIController : MonoBehaviour
     {
         CancelGeneration();
         StopWinAnimation();
+        SaveGame();
         UIMasterController.Instance.NavigateToMenu();
     }
 
@@ -576,7 +592,7 @@ public class GameUIController : MonoBehaviour
         int seconds = seconds_total % 60;
 
         string h = hours > 0 ? $"{hours.ToString("D2")}:" : "";
-        string m = minutes > 0 || hours > 0 ? $"{minutes.ToString("D2")}:": "";
+        string m = minutes > 0 || hours > 0 ? $"{minutes.ToString("D2")}:" : "";
         return $"{h}{m}{seconds.ToString("D2")}";
     }
 
@@ -589,7 +605,7 @@ public class GameUIController : MonoBehaviour
 
         var colrow = ColumnsRows(cell);
         var box = Box(cell);
-        foreach(var idx in colrow.Item1.Concat(colrow.Item2).Concat(box))
+        foreach (var idx in colrow.Item1.Concat(colrow.Item2).Concat(box))
             gridCells[idx].ClearNote(number);
 
         // Wrong numbers are marked in HighlightCells, so the marking also follows Undo,
@@ -621,9 +637,11 @@ public class GameUIController : MonoBehaviour
             return;
 
         history.Push(state);
+        // Past the cap the oldest state goes, so Undo's floor moves up with it
+        history.TrimOldest(k_maxHistory);
         // A solved grid has nothing left to continue
         if (FinishedCheck()) PuzzleLoader.DeleteSave();
-        else PuzzleLoader.SavePuzzle(puzzle, solution, history);
+        else PuzzleLoader.SavePuzzle(puzzle, solution, history, gameTime);
     }
 
     /// <summary>
@@ -650,7 +668,6 @@ public class GameUIController : MonoBehaviour
     /// </summary>
     private void GridFromString(string state)
     {
-        Debug.Log($"GridFromString: {state}");
         int cells = gridCells.Length;
         bool hasNotes = state.Length == cells * 10;
         if (state.Length != cells && !hasNotes)
@@ -789,6 +806,12 @@ public class GameUIController : MonoBehaviour
         }
 
         public void Push(T value) => innerList.Add(value);
+
+        public void TrimOldest(int maxCount)
+        {
+            if (innerList.Count > maxCount)
+                innerList.RemoveRange(0, innerList.Count - maxCount);
+        }
 
         public T Pop()
         {
