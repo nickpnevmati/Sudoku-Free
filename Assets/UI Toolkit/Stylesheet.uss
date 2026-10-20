@@ -7,6 +7,17 @@
 
 .unity-button {
     font-size: 44px;
+    color: var(--color-text);
+    background-color: var(--color-button);
+    border-color: var(--color-button-border);
+}
+
+.unity-button:hover {
+    background-color: var(--color-button-hover);
+}
+
+.unity-button:active {
+    background-color: var(--color-button-pressed);
 }
 
 .menu_button {
@@ -16,30 +27,35 @@
     margin-bottom: 2%;
 }
 
-.numpad_container {
-    width: 50%;
-    max-width: 50%;
-    max-height: 100%;
-    flex-grow: 0;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-}
-
-.numpad_aspect {
+/* Footer: numpad (left half) + mode buttons (right half), both exactly as tall as the
+   numpad is wide. Percentage padding is relative to width, so padding-bottom: 50% makes
+   the box half as tall as it is wide; the left half is then a square for the numpad and
+   both columns share one height, which keeps their top and bottom edges aligned. */
+.footer_aspect {
     width: 100%;
-    padding-bottom: 100%;
+    padding-bottom: 50%;
     flex-grow: 0;
     flex-shrink: 0;
 }
 
-.numpad_inner {
+.footer_inner {
     position: absolute;
     left: 0;
     top: 0;
     right: 0;
     bottom: 0;
+    flex-direction: row;
+}
+
+.numpad_container {
+    width: 50%;
+    height: 100%;
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.numpad {
+    flex-grow: 1;
     flex-direction: column;
 }
 
@@ -60,19 +76,25 @@
     height: auto;
     min-width: 0;
     min-height: 0;
-    margin: 2%;
+    /* Same px margin as .game_button, so the two columns line up edge to edge */
+    margin: 10px;
     font-size: 72px;
 }
 
-.numpad_button.numpad_button_active {
-    flex-basis: 0;
-    flex-grow: 1;
-    flex-shrink: 1;
-    width: auto;
-    height: auto;
-    min-width: 0;
-    min-height: 0;
-    margin: 2%;
+/* Selected number in fast mode, and the Fast / Note / Erase mode buttons while on */
+.numpad_button.numpad_button_active,
+.game_button.game_button_active {
+    color: var(--color-accent-text);
+    background-color: var(--color-accent);
+    border-color: var(--color-accent);
+}
+
+.numpad_button.numpad_button_active:hover,
+.numpad_button.numpad_button_active:active,
+.game_button.game_button_active:hover,
+.game_button.game_button_active:active {
+    background-color: var(--color-accent);
+    opacity: 0.85;
 }
 
 .custom_toggle {
@@ -83,7 +105,7 @@
     padding-left: 24px;
     padding-right: 24px;
     border-bottom-width: 1px;
-    border-bottom-color: rgba(255, 255, 255, 0.1);
+    border-bottom-color: var(--color-divider);
 }
 
 .custom_toggle_text {
@@ -102,7 +124,7 @@
     align-items: center;
     justify-content: center;
     border-width: 2px;
-    border-color: rgb(120, 120, 120);
+    border-color: var(--color-button-border);
     border-radius: 5px;
     background-color: rgba(0, 0, 0, 0);
     transition-property: all;
@@ -113,7 +135,7 @@
     width: 60%;
     height: 60%;
     border-radius: 3px;
-    background-color: rgb(70, 140, 240);
+    background-color: var(--color-accent);
     opacity: 0;
     scale: 0.6 0.6;
     transition-property: all;
@@ -121,15 +143,15 @@
 }
 
 .custom_toggle:hover .custom_toggle_checkbox_parent {
-    border-color: rgb(180, 180, 180);
+    border-color: var(--color-text-muted);
 }
 
 .custom_toggle:active .custom_toggle_checkbox_parent {
-    background-color: rgba(255, 255, 255, 0.08);
+    background-color: var(--color-divider);
 }
 
 .custom_toggle.checked .custom_toggle_checkbox_parent {
-    border-color: rgb(70, 140, 240);
+    border-color: var(--color-accent);
 }
 
 .custom_toggle.checked .toggle_checkbox {
@@ -137,14 +159,35 @@
     scale: 1 1;
 }
 
-.game_button {
+.game_button_container {
     flex-grow: 1;
-    flex-shrink: 1;
-    margin-bottom: 5%;
+    height: 100%;
 }
 
-.game_button_last {
-    margin-bottom: 0;
+/* Equal shares of the column, so 3 buttons (QuickNote hidden) or 4 fill it the same way */
+.game_button {
+    flex-basis: 0;
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
+    margin: 10px;
+}
+
+.settings_header {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 48px;
+}
+
+.settings_back_button {
+    min-height: 110px;
+    padding-left: 32px;
+    padding-right: 32px;
+    margin-right: 32px;
+}
+
+.settings_title {
+    font-size: 83px;
 }
 
 

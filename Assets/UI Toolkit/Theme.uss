@@ -1,0 +1,62 @@
+/* Colour palette. Imported by the panel theme (UnityThemes/UnityDefaultRuntimeTheme.tss),
+   so these variables are defined on the panel root and inherited by every UIDocument.
+   Light values live on :root; UIMasterController.SetDarkTheme toggles .theme_dark on the
+   same root element, and because that rule comes later it wins over :root. */
+:root {
+    --color-background: rgb(250, 250, 250);
+    --color-surface: rgb(255, 255, 255);
+    --color-text: rgb(20, 20, 20);
+    --color-text-muted: rgb(100, 100, 100);
+    --color-divider: rgba(0, 0, 0, 0.1);
+
+    --color-button: rgb(228, 228, 228);
+    --color-button-hover: rgb(215, 215, 215);
+    --color-button-pressed: rgb(195, 195, 195);
+    --color-button-border: rgb(180, 180, 180);
+
+    --color-accent: rgb(70, 140, 240);
+    --color-accent-text: rgb(255, 255, 255);
+
+    --color-grid-line: rgb(0, 0, 0);
+    --color-grid-line-thin: rgb(180, 180, 180);
+    --color-cell-related: rgb(226, 235, 250);
+    --color-cell-same-number: rgb(190, 212, 248);
+    --color-cell-selected: rgb(160, 195, 248);
+    --color-cell-error: rgb(248, 180, 180);
+
+    --color-backdrop: rgba(0, 0, 0, 0.5);
+
+    background-color: var(--color-background);
+    color: var(--color-text);
+}
+
+.theme_dark {
+    --color-background: rgb(18, 18, 20);
+    --color-surface: rgb(30, 31, 34);
+    --color-text: rgb(232, 232, 232);
+    --color-text-muted: rgb(160, 160, 160);
+    --color-divider: rgba(255, 255, 255, 0.1);
+
+    --color-button: rgb(48, 50, 54);
+    --color-button-hover: rgb(60, 62, 67);
+    --color-button-pressed: rgb(76, 79, 85);
+    --color-button-border: rgb(72, 74, 80);
+
+    --color-accent: rgb(90, 150, 245);
+    --color-accent-text: rgb(255, 255, 255);
+
+    --color-grid-line: rgb(170, 170, 170);
+    --color-grid-line-thin: rgb(70, 70, 76);
+    --color-cell-related: rgb(36, 44, 60);
+    --color-cell-same-number: rgb(48, 78, 128);
+    --color-cell-selected: rgb(60, 100, 165);
+    --color-cell-error: rgb(130, 40, 45);
+
+    --color-backdrop: rgba(0, 0, 0, 0.65);
+}
+
+/* The default theme gives labels their own colour, so inheritance from :root alone
+   isn't enough. Component stylesheets still override this (they're applied later). */
+.unity-label {
+    color: var(--color-text);
+}

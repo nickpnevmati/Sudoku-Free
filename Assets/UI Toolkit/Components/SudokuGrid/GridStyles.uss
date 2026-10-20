@@ -2,8 +2,45 @@
     flex-grow: 1;
     flex-shrink: 1;
     flex-basis: 0;
-    border-color: black;
+    border-color: var(--color-grid-line-thin);
     border-width: 1px;
+    background-color: var(--color-surface);
+}
+
+/* Highlights, toggled from GameUIController. Later rules win when a cell has several
+   (the selected cell is also in its own row/column/box), so keep them in this order. */
+.grid_cell.cell_related {
+    background-color: var(--color-cell-related);
+}
+
+.grid_cell.cell_same_number {
+    background-color: var(--color-cell-same-number);
+}
+
+.grid_cell.cell_selected {
+    background-color: var(--color-cell-selected);
+}
+
+/* Last, so a wrong number stays red even when it's selected or highlighted */
+.grid_cell.cell_error {
+    background-color: var(--color-cell-error);
+}
+
+/* Win animation (GameUIController.PlayWinAnimation): cells pulse in rings
+   spreading out from the last number placed */
+.grid_cell.cell_win_anim {
+    transition-property: background-color, scale;
+    transition-duration: 0.25s;
+    transition-timing-function: ease-out-sine;
+}
+
+.grid_cell.cell_win {
+    background-color: var(--color-accent);
+    scale: 1.12 1.12;
+}
+
+.grid_cell.cell_win .cell_number {
+    color: var(--color-accent-text);
 }
 
 .grid_row {
@@ -14,14 +51,14 @@
 }
 
 .grid_separator_col {
-    background-color: black;
+    background-color: var(--color-grid-line);
     flex-grow: 0;
     flex-shrink: 0;
     width: 3px;
 }
 
 .grid_separator_row {
-    background-color: black;
+    background-color: var(--color-grid-line);
     flex-grow: 0;
     flex-shrink: 0;
     height: 3px;
@@ -61,6 +98,7 @@
     margin: 0;
     padding: 0;
     font-size: 28px;
+    color: var(--color-text-muted);
     -unity-text-align: middle-center;
     white-space: nowrap;
 }

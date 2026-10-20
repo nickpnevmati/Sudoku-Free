@@ -2,17 +2,20 @@
     <ui:Template name="CustomToggle" src="project://database/Assets/UI%20Toolkit/Components/CustomToggle.uxml?fileID=9197481963319205126&amp;guid=0b31242b10591f60096d84bc26e21e77&amp;type=3#CustomToggle" />
     <Style src="project://database/Assets/UI%20Toolkit/Stylesheet.uss?fileID=7433441132597879392&amp;guid=6e3e0ee6f8f903d08bebd37592b58449&amp;type=3#Stylesheet" />
     <ui:VisualElement style="flex-grow: 1; padding-left: 10%; padding-top: 10%; padding-right: 10%; padding-bottom: 10%;">
-        <ui:Label text="Settings" style="font-size: 83px; color: rgb(0, 0, 0);" />
-        <ui:Instance template="CustomToggle">
+        <ui:VisualElement name="Header" class="settings_header">
+            <ui:Button text="Back" name="BackButton" class="settings_back_button" />
+            <ui:Label text="Settings" class="settings_title" />
+        </ui:VisualElement>
+        <ui:Instance template="CustomToggle" name="DarkThemeToggle">
             <AttributeOverrides element-name="CheckboxLabel" text="Dark Theme" />
         </ui:Instance>
-        <ui:Instance template="CustomToggle">
+        <ui:Instance template="CustomToggle" name="CheckErrorsToggle">
             <AttributeOverrides element-name="CheckboxLabel" text="Check Errors" />
         </ui:Instance>
-        <ui:Instance template="CustomToggle">
+        <ui:Instance template="CustomToggle" name="DisableQuickNoteToggle">
             <AttributeOverrides element-name="CheckboxLabel" text="Disable Quicknote" />
         </ui:Instance>
-        <ui:Instance template="CustomToggle">
+        <ui:Instance template="CustomToggle" name="DisableWinAnimationToggle">
             <AttributeOverrides element-name="CheckboxLabel" text="Disable Win Animation" />
         </ui:Instance>
     </ui:VisualElement>

@@ -24,6 +24,7 @@ public class GameUIController : MonoBehaviour
 
     // Timer
     private Label timer;
+    private float gameTime;
 
     // Confirmation modal
     private VisualElement m_confirmModal, m_confirmBackdrop;
@@ -31,12 +32,21 @@ public class GameUIController : MonoBehaviour
     private Button m_confirmButton, m_cancelButton;
     private Action m_onConfirm;
 
+    // Loading overlay
+    private VisualElement m_loadingOverlay, m_loadingSpinner;
+    private Button m_loadingCancelButton;
+    private float m_spinnerAngle;
+
     private Task<(string, string)> generatePuzzleTask;
-    private CancellationToken token;
+    private CancellationTokenSource m_generationCts;
     private string puzzle, solution;
 
     // Flags
-    private bool m_fastMode, m_noteMode, m_QuickNote, m_eraseMode;
+    private bool m_fastMode, m_noteMode, m_quickNote, m_eraseMode, m_solved;
+
+    // Win animation: pending steps, so a new game or exit can stop it part-way
+    private readonly List<IVisualElementScheduledItem> m_winAnimation = new List<IVisualElementScheduledItem>();
+    const long k_winRippleStepMs = 70, k_winFlashMs = 350, k_winPromptDelayMs = 400;
     private int? m_selectedCell, m_selectedNumber;
 
     private void ConstructGrid()
@@ -103,6 +113,17 @@ public class GameUIController : MonoBehaviour
         HideConfirmation();
     }
 
+    private void ConstructLoadingOverlay()
+    {
+        m_loadingOverlay = m_root.Q<VisualElement>("LoadingOverlay");
+        m_loadingSpinner = m_root.Q<VisualElement>("LoadingSpinner");
+        m_loadingCancelButton = m_root.Q<Button>("LoadingCancelButton");
+
+        m_loadingCancelButton.clicked += ExitToMenu;
+
+        HideLoading();
+    }
+
     // ------------------ Unity Functions -----------------
 
     private void Awake()
@@ -116,19 +137,31 @@ public class GameUIController : MonoBehaviour
         {
             Instance = this;
         }
+
         m_document = GetComponent<UIDocument>();
         m_root = m_document.rootVisualElement;
         ConstructGrid();
         ConstructNumpad();
         RegisterButtons();
         ConstructConfirmModal();
+        ConstructLoadingOverlay();
         timer = m_root.Q<Label>("GameTimer");
-        token = destroyCancellationToken;
     }
 
     private void Update()
     {
         GameLoaded();
+
+        if (generatePuzzleTask != null)
+        {
+            m_spinnerAngle = (m_spinnerAngle + 360f * Time.deltaTime) % 360f;
+            m_loadingSpinner.style.rotate = new Rotate(Angle.Degrees(m_spinnerAngle));
+            return;
+        }
+
+        // Update Game Timer
+        if (!m_solved) gameTime += Time.deltaTime;
+        timer.text = FormatTime(gameTime);
     }
 
     // ------------------- Setup Function ----------------------
@@ -142,8 +175,13 @@ public class GameUIController : MonoBehaviour
         }
         else
         {
+            CancelGeneration();
+            // Linked to destroyCancellationToken so teardown still stops the generator
+            m_generationCts = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken);
+            var token = m_generationCts.Token;
             generatePuzzleTask = Task.Run(() => PuzzleGenerator.Instance.Generate((PuzzleDifficulty)difficulty, token), token);
             history = new HStack<string>();
+            ShowLoading();
         }
     }
 
@@ -153,17 +191,51 @@ public class GameUIController : MonoBehaviour
 
         var finished = generatePuzzleTask;
         generatePuzzleTask = null;
+        DisposeGenerationCts();
+        HideLoading();
 
         if (finished.IsCompletedSuccessfully) StartGame(finished.Result);
-        else if (finished.IsFaulted) Debug.LogException(finished.Exception);
+        else if (finished.IsFaulted)
+        {
+            Debug.LogException(finished.Exception);
+            UIMasterController.Instance.NavigateToMenu();
+        }
+    }
+
+    /// <summary>
+    /// Stop a puzzle that's still generating. Dropping the task as well means GameLoaded
+    /// never sees it, so a result that lands after cancelling can't start a game behind the menu.
+    /// </summary>
+    private void CancelGeneration()
+    {
+        m_generationCts?.Cancel();
+        DisposeGenerationCts();
+        generatePuzzleTask = null;
+        HideLoading();
+    }
+
+    private void DisposeGenerationCts()
+    {
+        m_generationCts?.Dispose();
+        m_generationCts = null;
     }
 
     private void StartGame((string, string) result)
     {
+        Debug.Log("StartGame");
         (puzzle, solution) = result;
         m_selectedCell = null;
         m_selectedNumber = null;
-        ClearHighlights();
+
+        m_fastMode = false;
+        m_noteMode = false;
+        m_eraseMode = false;
+        m_quickNote = false;
+        m_solved = false;
+        StopWinAnimation();
+        quickNoteButton.style.display = GameSettings.DisableQuickNote ? DisplayStyle.None : DisplayStyle.Flex;
+
+        gameTime = 0f;
 
         // Continue: pick up where the history left off. New game (or a save with
         // no history): start from the givens and save that, so it replaces any
@@ -177,6 +249,7 @@ public class GameUIController : MonoBehaviour
             GridFromString(puzzle);
             SaveGame();
         }
+        Refresh();
     }
 
 
@@ -184,12 +257,22 @@ public class GameUIController : MonoBehaviour
 
     private void OnCellClicked(int index)
     {
+        if (m_solved) return;
+
         if (m_fastMode)
         {
             if (!gridCells[index].number.Equals(""))
             {
-                m_selectedNumber = int.Parse(gridCells[index].number);
-                HighlightCells();
+                if (m_eraseMode)
+                {
+                    EraseCell(index);
+                    SaveGame();
+                }
+                else
+                {
+                    m_selectedNumber = int.Parse(gridCells[index].number);
+                }
+                Refresh();
                 return;
             }
 
@@ -200,36 +283,26 @@ public class GameUIController : MonoBehaviour
             else if (m_eraseMode) EraseCell(index);
             else SetNumber(index, selectedNumber);
 
-            HighlightNumpad();
-            HighlightCells();
-
+            Refresh();
             SaveGame();
         }
         else
         {
             m_selectedCell = index;
-            ClearHighlights();
             string selected = gridCells[index].number;
-
-            if (selected.Equals(""))
-            {
-                m_selectedNumber = null;
-                return;
-            }
-
-            int number = int.Parse(selected);
-            m_selectedNumber = number;
-            HighlightCells();
+            m_selectedNumber = selected.Equals("") ? null : int.Parse(selected);
+            Refresh();
         }
     }
 
     private void OnNumpadClicked(int number)
     {
+        if (m_solved) return;
+
         if (m_fastMode)
         {
             m_selectedNumber = number;
-            HighlightCells();
-            HighlightNumpad();
+            Refresh();
         }
         else
         {
@@ -240,8 +313,7 @@ public class GameUIController : MonoBehaviour
             else if (m_eraseMode) EraseCell(selectedCell);
             else SetNumber(selectedCell, number);
 
-            HighlightCells();
-
+            Refresh();
             SaveGame();
         }
     }
@@ -251,31 +323,33 @@ public class GameUIController : MonoBehaviour
         m_fastMode = !m_fastMode;
 
         if (!m_fastMode)
-        {
             m_selectedNumber = null;
-            HighlightNumpad();
-        }
         else
         {
-            m_selectedNumber = m_selectedCell == null ? 1 : int.Parse(gridCells[(int)m_selectedCell].number);
-            HighlightNumpad();
+            m_selectedNumber = m_selectedCell == null || gridCells[(int)m_selectedCell].number.Equals("") ? 1 : int.Parse(gridCells[(int)m_selectedCell].number);
+            m_selectedCell = null;
         }
-
-        throw new NotImplementedException();
+        Refresh();
     }
 
     private void OnEraseModeToggled()
     {
+        m_noteMode = false;
         m_eraseMode = !m_eraseMode;
+        Refresh();
     }
 
     private void OnNoteModeToggled()
     {
+        m_eraseMode = false;
         m_noteMode = !m_noteMode;
+        Refresh();
     }
 
     private void QuickNote()
     {
+        if (m_solved) return;
+
         for (int i = 0; i < gridCells.Length; i++)
         {
             if (!gridCells[i].number.Equals("")) continue;
@@ -300,7 +374,11 @@ public class GameUIController : MonoBehaviour
 
     private void Undo()
     {
-        throw new NotImplementedException();
+        if (m_solved || history.Count <= 1) return;
+        string last = history.PopGetPrevious();
+        GridFromString(last);
+        Refresh();
+        PuzzleLoader.SavePuzzle(puzzle, solution, history);
     }
 
     private void ExitRequested()
@@ -310,7 +388,42 @@ public class GameUIController : MonoBehaviour
             message: "Are you sure you want to exit the game?",
             confirmText: "Yes, exit",
             cancelText: "No, stay",
-            onConfirm: UIMasterController.Instance.NavigateToMenu);
+            onConfirm: ExitToMenu);
+    }
+
+    private void ExitToMenu()
+    {
+        CancelGeneration();
+        StopWinAnimation();
+        UIMasterController.Instance.NavigateToMenu();
+    }
+
+    private void OnPuzzleSolved(int lastCell)
+    {
+        m_solved = true;
+        m_selectedCell = null;
+        m_selectedNumber = null;
+
+        if (GameSettings.DisableWinAnimation)
+            ShowWinPrompt();
+        else
+            PlayWinAnimation(lastCell);
+    }
+
+    private void ShowWinPrompt()
+    {
+        ShowConfirmation(
+            title: "Puzzle Solved!",
+            message: $"Your time: {FormatTime(gameTime)}",
+            confirmText: "New game",
+            cancelText: "Close",
+            onConfirm: NewGameRequested);
+    }
+
+    private void NewGameRequested()
+    {
+        StopWinAnimation();
+        UIMasterController.Instance.NavigateToDifficultySelect();
     }
 
     private void OnConfirmClicked()
@@ -323,20 +436,33 @@ public class GameUIController : MonoBehaviour
 
     // ------------------- Visuals ----------------
 
+    /// <summary>
+    /// Rebuild every highlight from the current state. It's only class toggles over
+    /// 81 cells and a few buttons, so call this after any change instead of tracking
+    /// which highlight needs updating.
+    /// </summary>
+    private void Refresh()
+    {
+        HighlightCells();
+        HighlightNumpad();
+        HighlightModeButtons();
+    }
+
     private void HighlightCells()
     {
+        ClearHighlights();
         if (m_selectedCell != null)
         {
             int selected = (int)m_selectedCell;
-            gridCells[selected].SetHighlight(Color.blue);
+            gridCells[selected].SetHighlight("cell_selected");
             (int[], int[]) colrows = ColumnsRows(selected);
             foreach (int col in colrows.Item1)
-                gridCells[col].SetHighlight(Color.cyan);
+                gridCells[col].SetHighlight("cell_related");
             foreach (int row in colrows.Item2)
-                gridCells[row].SetHighlight(Color.cyan);
+                gridCells[row].SetHighlight("cell_related");
 
             foreach (var idx in Box(selected))
-                gridCells[idx].SetHighlight(Color.cyan);
+                gridCells[idx].SetHighlight("cell_related");
         }
 
 
@@ -346,7 +472,18 @@ public class GameUIController : MonoBehaviour
             {
                 if (gridCells[i].number != m_selectedNumber.ToString()) continue;
 
-                gridCells[i].SetHighlight(Color.blue);
+                gridCells[i].SetHighlight("cell_same_number");
+            }
+        }
+
+        if (GameSettings.CheckErrors && solution != null)
+        {
+            for (int i = 0; i < gridCells.Length; i++)
+            {
+                string number = gridCells[i].number;
+                if (number.Equals("") || IsPlacementCorrect(i, number)) continue;
+
+                gridCells[i].SetHighlight("cell_error");
             }
         }
     }
@@ -372,29 +509,103 @@ public class GameUIController : MonoBehaviour
         m_confirmModal.style.display = DisplayStyle.None;
     }
 
+    /// <summary>
+    /// Flash every cell in rings spreading out from the last number placed, then show
+    /// the win prompt. Driven by the UI scheduler; StopWinAnimation cancels what's pending.
+    /// </summary>
+    private void PlayWinAnimation(int origin)
+    {
+        StopWinAnimation();
+        int originRow = origin / 9, originCol = origin % 9;
+        long lastFlashEnd = 0;
+
+        for (int i = 0; i < gridCells.Length; i++)
+        {
+            var cell = gridCells[i];
+            cell.SetWinTransition(true);
+
+            // Chebyshev distance, so each wave is a square ring around the origin
+            int ring = Math.Max(Math.Abs(i / 9 - originRow), Math.Abs(i % 9 - originCol));
+            long start = ring * k_winRippleStepMs;
+            lastFlashEnd = Math.Max(lastFlashEnd, start + k_winFlashMs);
+
+            m_winAnimation.Add(m_root.schedule.Execute(() => cell.SetWinFlash(true)).StartingIn(start));
+            m_winAnimation.Add(m_root.schedule.Execute(() => cell.SetWinFlash(false)).StartingIn(start + k_winFlashMs));
+        }
+
+        m_winAnimation.Add(m_root.schedule.Execute(ShowWinPrompt).StartingIn(lastFlashEnd + k_winPromptDelayMs));
+    }
+
+    private void StopWinAnimation()
+    {
+        foreach (var item in m_winAnimation) item.Pause();
+        m_winAnimation.Clear();
+        foreach (var cell in gridCells)
+        {
+            cell.SetWinFlash(false);
+            cell.SetWinTransition(false);
+        }
+    }
+
+    // The overlay is opaque and covers the whole screen, so it also blocks input
+    // to the previous game's grid while the new puzzle generates
+    private void ShowLoading() => m_loadingOverlay.style.display = DisplayStyle.Flex;
+    private void HideLoading() => m_loadingOverlay.style.display = DisplayStyle.None;
+
     private void HighlightNumpad()
     {
         for (int i = 0; i < numpad.Length; i++)
             numpad[i].EnableInClassList("numpad_button_active", m_selectedNumber != null && m_selectedNumber == i + 1);
     }
 
+    private void HighlightModeButtons()
+    {
+        fastModeButton.EnableInClassList("game_button_active", m_fastMode);
+        noteModeButton.EnableInClassList("game_button_active", m_noteMode);
+        eraseButton.EnableInClassList("game_button_active", m_eraseMode);
+    }
+
 
     // ------------------- Utils ------------------------
+
+    private string FormatTime(float time)
+    {
+        int seconds_total = (int)time;
+        int hours = seconds_total / 3600;
+        int minutes = seconds_total / 60 % 60;
+        int seconds = seconds_total % 60;
+
+        string h = hours > 0 ? $"{hours.ToString("D2")}:" : "";
+        string m = minutes > 0 || hours > 0 ? $"{minutes.ToString("D2")}:": "";
+        return $"{h}{m}{seconds.ToString("D2")}";
+    }
 
     // TODO history on the following 3 methods
     private void SetNumber(int cell, int number)
     {
+        if (!gridCells[cell].number.Equals("")) return;
         gridCells[cell].ClearAll();
         gridCells[cell].SetNumber(number.ToString());
+
+        var colrow = ColumnsRows(cell);
+        var box = Box(cell);
+        foreach(var idx in colrow.Item1.Concat(colrow.Item2).Concat(box))
+            gridCells[idx].ClearNote(number);
+
+        // Wrong numbers are marked in HighlightCells, so the marking also follows Undo,
+        // Continue and the Check Errors setting being toggled
+        if (FinishedCheck()) OnPuzzleSolved(cell);
     }
 
     private void ToggleNote(int cell, int number)
     {
+        if (!gridCells[cell].number.Equals("")) return;
         gridCells[cell].ToggleNote(number);
     }
 
     private void EraseCell(int cell)
     {
+        if (puzzle[cell] != '0') return;
         gridCells[cell].ClearAll();
     }
 
@@ -403,7 +614,13 @@ public class GameUIController : MonoBehaviour
 
     private void SaveGame()
     {
-        history.Push(GridStateToString());
+        // Moves that changed nothing (e.g. a number on a filled cell) shouldn't add an
+        // Undo step. Compare the full state - numbers and notes - like history stores it
+        string state = GridStateToString();
+        if (history.Count > 0 && history.Last.Equals(state))
+            return;
+
+        history.Push(state);
         // A solved grid has nothing left to continue
         if (FinishedCheck()) PuzzleLoader.DeleteSave();
         else PuzzleLoader.SavePuzzle(puzzle, solution, history);
@@ -433,6 +650,7 @@ public class GameUIController : MonoBehaviour
     /// </summary>
     private void GridFromString(string state)
     {
+        Debug.Log($"GridFromString: {state}");
         int cells = gridCells.Length;
         bool hasNotes = state.Length == cells * 10;
         if (state.Length != cells && !hasNotes)
@@ -442,7 +660,7 @@ public class GameUIController : MonoBehaviour
         {
             gridCells[i].SetNumber(state[i] == '0' ? "" : state[i].ToString());
             if (hasNotes) gridCells[i].NotesFromString(state.Substring(cells + i * 9, 9));
-            else gridCells[i].ClearAll();
+            else gridCells[i].ClearNotes();
         }
     }
 
@@ -473,13 +691,14 @@ public class GameUIController : MonoBehaviour
 
     private class Cell
     {
-        VisualElement root;
+        VisualElement root, background;
         Label[] notes;
         Label label;
 
         public Cell(VisualElement root)
         {
             this.root = root;
+            background = root.Q<VisualElement>(className: "grid_cell");
             label = root.Q<Label>("CellButton");
             label.text = "";
             notes = new Label[9];
@@ -505,21 +724,32 @@ public class GameUIController : MonoBehaviour
             var note = notes[number - 1];
             note.style.display = note.style.display == DisplayStyle.Flex ? DisplayStyle.None : DisplayStyle.Flex;
         }
-        public void ClearAll()
+        public void ClearNotes()
         {
             for (int i = 1; i <= notes.Length; i++)
                 ClearNote(i);
         }
-
-        public void SetHighlight(Color c)
+        public void ClearAll()
         {
-            root.style.backgroundColor = c;
+            ClearNotes();
+            label.text = "";
         }
+
+        // Colours live in GridStyles.uss / Theme.uss so they follow the theme
+        public void SetHighlight(string highlightClass) => background.AddToClassList(highlightClass);
 
         public void ClearHighlight()
         {
-            root.style.backgroundColor = new Color(0, 0, 0, 0);
+            background.RemoveFromClassList("cell_related");
+            background.RemoveFromClassList("cell_same_number");
+            background.RemoveFromClassList("cell_selected");
+            background.RemoveFromClassList("cell_error");
         }
+
+        // Win animation. The transition class is kept separate so ordinary highlights
+        // don't fade - only cells taking part in the animation get the transition
+        public void SetWinTransition(bool on) => background.EnableInClassList("cell_win_anim", on);
+        public void SetWinFlash(bool on) => background.EnableInClassList("cell_win", on);
 
         public bool HasNote(int number) => notes[number - 1].style.display == DisplayStyle.Flex;
 
@@ -562,15 +792,16 @@ public class GameUIController : MonoBehaviour
 
         public T Pop()
         {
-            T value = innerList.Last();
-            innerList.RemoveAt(innerList.Count - 1);
+            T value = innerList.LastOrDefault();
+            if (innerList.Count > 0)
+                innerList.RemoveAt(innerList.Count - 1);
             return value;
         }
 
         public T PopGetPrevious()
         {
             Pop();
-            return innerList.Last();
+            return innerList.LastOrDefault();
         }
 
         public static implicit operator HStack<T>(T[] array)

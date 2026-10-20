@@ -404,7 +404,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 41e1fea35c9c86c75bf7c9bb5082597c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  continueFlag: 0
 --- !u!1 &890238685
 GameObject:
   m_ObjectHideFlags: 0
@@ -449,7 +448,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4898cd9c01a50f333a62ed54ae455d05, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIController
-  settings: {fileID: 11400000, guid: d4f230816b22bb42dab0aa0457f0470e, type: 2}
 --- !u!1 &1083602733
 GameObject:
   m_ObjectHideFlags: 0
@@ -571,6 +569,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1671026688}
   - component: {fileID: 1671026687}
+  - component: {fileID: 1671026689}
   m_Layer: 5
   m_Name: Settings
   m_TagString: Untagged
@@ -612,6 +611,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1671026689
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1671026686}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a32288ce66abae01942966e0cd4af55, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

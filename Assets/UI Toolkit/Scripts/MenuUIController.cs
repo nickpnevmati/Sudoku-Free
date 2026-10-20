@@ -102,6 +102,6 @@ public class MenuUIController : MonoBehaviour
         UIMasterController.Instance.NavigateToGame(false, difficulty);
     }
 
-    private void ShowDifficultyModal() => m_difficultyModal.style.display = DisplayStyle.Flex;
+    public void ShowDifficultyModal() => m_difficultyModal.style.display = DisplayStyle.Flex;
     private void HideDifficultyModal() => m_difficultyModal.style.display = DisplayStyle.None;
 }
