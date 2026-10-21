@@ -286,6 +286,7 @@ public class GameUIController : MonoBehaviour
                 else
                 {
                     m_selectedNumber = int.Parse(gridCells[index].number);
+                    m_selectedCell = index;
                 }
                 Refresh();
                 return;
@@ -342,7 +343,6 @@ public class GameUIController : MonoBehaviour
         else
         {
             m_selectedNumber = m_selectedCell == null || gridCells[(int)m_selectedCell].number.Equals("") ? 1 : int.Parse(gridCells[(int)m_selectedCell].number);
-            m_selectedCell = null;
         }
         Refresh();
     }

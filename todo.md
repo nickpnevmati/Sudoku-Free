@@ -72,6 +72,8 @@
 - [x] Erase doesn't work - should turn into a button (not toggle) under normal mode
 - [x] Placing a number doesn't re-trigger highlights
 - [x] Numpad is highlighted when number selected
+### Fast Mode
+- [x] Selected Cell doesn't render ColRowBox highlights
 
 ## Menu
 - [x] Difficulty select (modal in `Menu.uxml`, wired in `MenuUIController`)
