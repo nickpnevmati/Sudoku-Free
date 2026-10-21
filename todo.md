@@ -67,7 +67,8 @@
 - [x] `GridFromString` throws a bare `Exception()` — add a message
 - [x] Menu buttons use `MouseUpEvent`; switch to `button.clicked` for reliable touch input
 ### General
-- [ ] Notes aren't highlighted
+- [x] Notes aren't highlighted — notes matching `m_selectedNumber` get `note_highlight` (accent background, bold) in `HighlightCells`
+  - [x] Notes shifted position depending on which others were set — hidden notes now use `visibility: hidden` instead of `display: none`, so each keeps its 3×3 slot
 ### Normal Mode
 - [x] Erase doesn't work - should turn into a button (not toggle) under normal mode
 - [x] Placing a number doesn't re-trigger highlights

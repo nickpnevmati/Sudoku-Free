@@ -102,3 +102,11 @@
     -unity-text-align: middle-center;
     white-space: nowrap;
 }
+
+/* Notes matching the selected number */
+.note_item.note_highlight {
+    background-color: var(--color-accent);
+    color: var(--color-accent-text);
+    -unity-font-style: bold;
+    border-radius: 6px;
+}

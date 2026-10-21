@@ -496,6 +496,8 @@ public class GameUIController : MonoBehaviour
         {
             for (int i = 0; i < gridCells.Length; i++)
             {
+                // Hidden notes keep the class harmlessly, so no HasNote check is needed
+                gridCells[i].HighlightNote((int)m_selectedNumber);
                 if (gridCells[i].number != m_selectedNumber.ToString()) continue;
 
                 gridCells[i].SetHighlight("cell_same_number");
@@ -741,7 +743,7 @@ public class GameUIController : MonoBehaviour
                 foreach (var note in row.Children())
                 {
                     notes[index] = (Label)note;
-                    note.style.display = DisplayStyle.None;
+                    note.style.visibility = Visibility.Hidden;
                     index++;
                 }
             }
@@ -749,12 +751,14 @@ public class GameUIController : MonoBehaviour
 
         public string number => label.text;
         public void SetNumber(string number) => label.text = number;
-        public void SetNote(int number) => notes[number - 1].style.display = DisplayStyle.Flex;
-        public void ClearNote(int number) => notes[number - 1].style.display = DisplayStyle.None;
+        // Hidden notes use visibility, not display, so they keep their slot in the 3×3
+        // layout - a "1" always sits top left whatever other notes the cell has
+        public void SetNote(int number) => notes[number - 1].style.visibility = Visibility.Visible;
+        public void ClearNote(int number) => notes[number - 1].style.visibility = Visibility.Hidden;
         public void ToggleNote(int number)
         {
-            var note = notes[number - 1];
-            note.style.display = note.style.display == DisplayStyle.Flex ? DisplayStyle.None : DisplayStyle.Flex;
+            if (HasNote(number)) ClearNote(number);
+            else SetNote(number);
         }
         public void ClearNotes()
         {
@@ -776,14 +780,17 @@ public class GameUIController : MonoBehaviour
             background.RemoveFromClassList("cell_same_number");
             background.RemoveFromClassList("cell_selected");
             background.RemoveFromClassList("cell_error");
+            foreach (var note in notes) note.RemoveFromClassList("note_highlight");
         }
+
+        public void HighlightNote(int number) => notes[number - 1].AddToClassList("note_highlight");
 
         // Win animation. The transition class is kept separate so ordinary highlights
         // don't fade - only cells taking part in the animation get the transition
         public void SetWinTransition(bool on) => background.EnableInClassList("cell_win_anim", on);
         public void SetWinFlash(bool on) => background.EnableInClassList("cell_win", on);
 
-        public bool HasNote(int number) => notes[number - 1].style.display == DisplayStyle.Flex;
+        public bool HasNote(int number) => notes[number - 1].style.visibility == Visibility.Visible;
 
         public string NotesToString()
         {
