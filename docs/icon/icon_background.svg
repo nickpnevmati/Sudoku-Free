@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="432" height="432" viewBox="0 0 432 432">
+  <!-- Adaptive icon background layer (108dp at xxxhdpi). Theme accent, darkening downwards -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5A9AF5"/>
+      <stop offset="1" stop-color="#2F6FD6"/>
+    </linearGradient>
+  </defs>
+  <rect width="432" height="432" fill="url(#bg)"/>
+</svg>

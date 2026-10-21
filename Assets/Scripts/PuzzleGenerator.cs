@@ -25,6 +25,7 @@ public class PuzzleGenerator
 
     private PuzzleSolver solver;
     private Random rand;
+    private readonly object m_generateLock = new object();
 
     public static PuzzleGenerator Instance
     {
@@ -53,13 +54,18 @@ public class PuzzleGenerator
     /// </summary>
     public (string, string) Generate(PuzzleDifficulty difficulty, CancellationToken token = default)
     {
-        while (true)
+        // A cancelled run can still be finishing when the next one starts, and System.Random
+        // isn't thread-safe. Cancellation is checked per dig step, so the wait is short
+        lock (m_generateLock)
         {
-            token.ThrowIfCancellationRequested();
-            int[] solution = RandomSolution();
-            var found = Dig(solution, token);
-            if (found.TryGetValue(difficulty, out int[] puzzle))
-                return (GridToString(puzzle), GridToString(solution));
+            while (true)
+            {
+                token.ThrowIfCancellationRequested();
+                int[] solution = RandomSolution();
+                var found = Dig(solution, token);
+                if (found.TryGetValue(difficulty, out int[] puzzle))
+                    return (GridToString(puzzle), GridToString(solution));
+            }
         }
     }
 
@@ -69,11 +75,14 @@ public class PuzzleGenerator
     /// </summary>
     public Dictionary<PuzzleDifficulty, (string, string)> GenerateBatch()
     {
-        int[] solution = RandomSolution();
-        string solutionStr = GridToString(solution);
-        return Dig(solution).ToDictionary(
-            kv => kv.Key,
-            kv => (GridToString(kv.Value), solutionStr));
+        lock (m_generateLock)
+        {
+            int[] solution = RandomSolution();
+            string solutionStr = GridToString(solution);
+            return Dig(solution).ToDictionary(
+                kv => kv.Key,
+                kv => (GridToString(kv.Value), solutionStr));
+        }
     }
 
     private static bool IsPlacementValid(int[] grid, int index, int value)

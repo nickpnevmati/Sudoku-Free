@@ -173,6 +173,23 @@
     margin: 10px;
 }
 
+/* Centred vertically between Exit and Undo; min-width stops the pill resizing as
+   digits change or minutes/hours appear */
+.game_timer {
+    align-self: center;
+    min-width: 220px;
+    padding: 12px 32px;
+    margin: 0 16px;
+    font-size: 48px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    color: var(--color-text);
+    background-color: var(--color-button);
+    border-color: var(--color-button-border);
+    border-width: 1px;
+    border-radius: 40px;
+}
+
 .settings_header {
     flex-direction: row;
     align-items: center;

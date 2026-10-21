@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="432" height="432" viewBox="0 0 432 432">
+  <!-- Adaptive icon foreground layer (108dp at xxxhdpi), transparent outside the card.
+       Launchers may mask to a 264px circle at the centre, so the card (210px, 40px corners)
+       is sized for its corners to stay just inside it. Cells are 70px. -->
+  <defs>
+    <clipPath id="card">
+      <rect x="111" y="111" width="210" height="210" rx="40"/>
+    </clipPath>
+  </defs>
+
+  <!-- Soft drop shadow -->
+  <rect x="111" y="117" width="210" height="210" rx="40" fill="#163C80" opacity="0.28"/>
+
+  <g clip-path="url(#card)">
+    <rect x="111" y="111" width="210" height="210" fill="#FFFFFF"/>
+    <!-- Selected cell, in the game's highlight colour -->
+    <rect x="181" y="181" width="70" height="70" fill="#BED4F8"/>
+  </g>
+
+  <!-- Cell lines -->
+  <g stroke="#BED4F8" stroke-width="4">
+    <line x1="181" y1="111" x2="181" y2="321"/>
+    <line x1="251" y1="111" x2="251" y2="321"/>
+    <line x1="111" y1="181" x2="321" y2="181"/>
+    <line x1="111" y1="251" x2="321" y2="251"/>
+  </g>
+
+  <!-- Digits; y is the cell centre plus ~0.36em to centre the glyphs -->
+  <g font-family="DejaVu Sans" font-weight="bold" font-size="50" text-anchor="middle" fill="#1E2A40">
+    <text x="146" y="164">5</text>
+    <text x="286" y="164">3</text>
+    <text x="216" y="234" fill="#2F6FD6">7</text>
+    <text x="146" y="304">8</text>
+  </g>
+</svg>

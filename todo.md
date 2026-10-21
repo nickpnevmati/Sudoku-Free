@@ -36,6 +36,7 @@
 - [x] Reset fast / note / erase modes when a new game starts
 - [x] Win animation (respect "Disable Win Animation" setting) — `PlayWinAnimation`: cells pulse in rings from the last number placed (`cell_win` / `cell_win_anim` in `GridStyles.uss`), then the prompt; stopped by `StopWinAnimation` on new game / exit
 - [x] Game timer (`GameTimer` label, `FormatTime`)
+  - [x] Styled as a pill (`.game_timer` in `Stylesheet.uss`), centred vertically in the header between Exit and Undo
   - [x] Timer isn't saved, so Continue restarts it at 0
   - [x] Timer only ticks while a game is in progress (`IsGameInProgress`): paused on the menu / settings, with the exit or win prompt open, while generating, and once solved
 - [x] Loading indicator while a puzzle is generating — `LoadingOverlay.uxml` (spinner + Cancel); opaque, so it also blocks input to the old grid; timer paused meanwhile
@@ -76,6 +77,15 @@
 ### Fast Mode
 - [x] Selected Cell doesn't render ColRowBox highlights
 
+### Pre-0.1 scan
+- [x] Erase mode stayed on (invisibly) after leaving fast mode, so the numpad erased
+- [x] Cancelling generation saved a broken game (null puzzle / emptied history) — `ExitToMenu` only saves when `generatePuzzleTask == null`
+- [x] Saved time: new game's first save stored the old game's time; exit without a move saved nothing; nothing saved when backgrounded — `gameTime` reset before `StartGame`, `SaveGame` always writes (`WriteSave`), `OnApplicationPause` saves
+- [x] Corrupt save left the player on a blank game screen — `LoadSaved` validates, Continue catches, deletes the save and returns to the menu; saves are written to a temp file and swapped in
+- [x] QuickNote didn't `Refresh()`, so new matching notes weren't highlighted
+- [x] Undo in normal mode left `m_selectedNumber` stale
+- [x] Overlapping generations shared `System.Random` — `Generate` / `GenerateBatch` take a lock
+
 ## Menu
 - [x] Difficulty select (modal in `Menu.uxml`, wired in `MenuUIController`)
 - [x] Conditionally hide Continue button (`MenuUIController.Refresh()`, called on `Start` and from `UIMasterController.NavigateToMenu`)
@@ -113,9 +123,10 @@
 - [ ] Create upload keystore and enable custom keystore — *Player Settings → Publishing Settings → Keystore Manager; back the keystore + passwords up outside the repo*
 - [ ] Build as App Bundle (.aab) — *Build Profiles → Android → "Build App Bundle (Google Play)"; it's a local editor setting, not in the repo*
 - [x] Set version name / version code: `1.0.0` / `1` — bump the code for every upload
-- [ ] App icon (adaptive icon) — *needs artwork: 512×512 for the store, plus foreground/background layers*
+- [ ] App icon (adaptive icon) — *artwork done: PNGs in `Assets/Art/Icon/` (store `icon_512`, adaptive `icon_adaptive_background` / `_foreground` at 432², `icon_round_512`), SVG sources in `docs/icon/`. Still to do: assign them in Player Settings → Android → Icon (Adaptive / Round / Legacy)*
 - [x] Splash screen — the Unity splash is already off (`m_ShowUnitySplashScreen: 0`); the background colour is set
 - [ ] Store listing: description, screenshots, feature graphic — *text drafted in `docs/store-listing.md`; graphics still to make*
 - [ ] Privacy policy URL — *drafted in `docs/privacy-policy.md`; needs hosting (see `docs/store-listing.md`)*
 - [ ] Content rating questionnaire + data safety form — *answers drafted in `docs/store-listing.md`*
-- [ ] Check `submitAnalytics: 1` (Unity device stats) before declaring "no data collected"
+- [ ] Check `submitAnalytics: 1` (Unity device stats) before declaring "no data collected" — *set to 0 in `ProjectSettings.asset` (no UI for it in Unity 6); unconfirmed that a Personal licence honours it — check on-device traffic for Unity requests, or declare device data in the data safety form*
+  - *Researched: all Unity services are already off in `UnityConnectSettings.asset` (Analytics, PerformanceReporting, Crash Reporting, Ads), which is what Unity's docs require for device stats to stop. Still to do (later): optionally disable the built-in Unity Analytics module (`com.unity.modules.unityanalytics`) in Package Manager, then capture a release build's traffic on a phone (PCAPdroid / mitmproxy) for `*.unity3d.com` / `*.unity.com`. None → declare "no data collected"; any → declare device IDs + diagnostics*

@@ -168,6 +168,16 @@ public class GameUIController : MonoBehaviour
         timer.text = FormatTime(gameTime);
     }
 
+    // Android may kill the app once it's in the background without any further callback,
+    // so save the time played since the last move now. Skipped while generating (or after
+    // cancelling one), when history has been reset and doesn't match the grid
+    private void OnApplicationPause(bool paused)
+    {
+        if (!paused || puzzle == null || generatePuzzleTask != null || history == null || history.Count == 0)
+            return;
+        WriteSave();
+    }
+
     /// <summary>
     /// True only while the player can actually play: a puzzle is loaded and unsolved, the
     /// game screen is showing (UIMasterController hides it on the menu / settings) and no
@@ -185,8 +195,21 @@ public class GameUIController : MonoBehaviour
     {
         if (continueFlag)
         {
-            (puzzle, solution, history, gameTime) = PuzzleLoader.LoadSaved();
-            StartGame((puzzle, solution));
+            try
+            {
+                (puzzle, solution, history, gameTime) = PuzzleLoader.LoadSaved();
+                StartGame((puzzle, solution));
+            }
+            catch (Exception e)
+            {
+                // Unreadable save (e.g. from an older build): drop it rather than
+                // leaving the player on a half-loaded game screen
+                Debug.LogException(e);
+                puzzle = solution = null;
+                history = null;
+                PuzzleLoader.DeleteSave();
+                UIMasterController.Instance.NavigateToMenu();
+            }
         }
         else
         {
@@ -211,8 +234,9 @@ public class GameUIController : MonoBehaviour
 
         if (finished.IsCompletedSuccessfully)
         {
-            StartGame(finished.Result);
+            // Before StartGame, whose first save would otherwise store the previous game's time
             gameTime = 0f;
+            StartGame(finished.Result);
         }
         else if (finished.IsFaulted)
         {
@@ -339,7 +363,10 @@ public class GameUIController : MonoBehaviour
         m_fastMode = !m_fastMode;
 
         if (!m_fastMode)
+        {
             m_selectedNumber = null;
+            m_eraseMode = false;
+        }
         else
         {
             m_selectedNumber = m_selectedCell == null || gridCells[(int)m_selectedCell].number.Equals("") ? 1 : int.Parse(gridCells[(int)m_selectedCell].number);
@@ -394,6 +421,7 @@ public class GameUIController : MonoBehaviour
                 gridCells[i].SetNote(num);
             }
         }
+        Refresh();
         SaveGame();
     }
 
@@ -402,8 +430,17 @@ public class GameUIController : MonoBehaviour
         if (m_solved || history.Count <= 1) return;
         string last = history.PopGetPrevious();
         GridFromString(last);
+
+        // In normal mode the selected number follows the selected cell, whose number
+        // the undo may have just removed (or brought back)
+        if (!m_fastMode && m_selectedCell != null)
+        {
+            string selected = gridCells[(int)m_selectedCell].number;
+            m_selectedNumber = selected.Equals("") ? null : int.Parse(selected);
+        }
+
         Refresh();
-        PuzzleLoader.SavePuzzle(puzzle, solution, history, gameTime);
+        WriteSave();
     }
 
     private void ExitRequested()
@@ -418,9 +455,13 @@ public class GameUIController : MonoBehaviour
 
     private void ExitToMenu()
     {
+        // Mid-generation, history is already reset and puzzle may still be null (or the
+        // previous game's), so saving then would write a broken save. GameLoaded nulls the
+        // task as soon as it finishes, so null means no generation is pending
+        if (generatePuzzleTask == null)
+            SaveGame();
         CancelGeneration();
         StopWinAnimation();
-        SaveGame();
         UIMasterController.Instance.NavigateToMenu();
     }
 
@@ -650,12 +691,19 @@ public class GameUIController : MonoBehaviour
         // Moves that changed nothing (e.g. a number on a filled cell) shouldn't add an
         // Undo step. Compare the full state - numbers and notes - like history stores it
         string state = GridStateToString();
-        if (history.Count > 0 && history.Last.Equals(state))
-            return;
+        if (history.Count == 0 || !history.Last.Equals(state))
+        {
+            history.Push(state);
+            // Past the cap the oldest state goes, so Undo's floor moves up with it
+            history.TrimOldest(k_maxHistory);
+        }
 
-        history.Push(state);
-        // Past the cap the oldest state goes, so Undo's floor moves up with it
-        history.TrimOldest(k_maxHistory);
+        // Written even when nothing was pushed, so the time played since the last move is kept
+        WriteSave();
+    }
+
+    private void WriteSave()
+    {
         // A solved grid has nothing left to continue
         if (FinishedCheck()) PuzzleLoader.DeleteSave();
         else PuzzleLoader.SavePuzzle(puzzle, solution, history, gameTime);
