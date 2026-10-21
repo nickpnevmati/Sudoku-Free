@@ -71,7 +71,7 @@
 ### Normal Mode
 - [x] Erase doesn't work - should turn into a button (not toggle) under normal mode
 - [x] Placing a number doesn't re-trigger highlights
-- [ ] Numpad is highlighted when number selected
+- [x] Numpad is highlighted when number selected
 
 ## Menu
 - [x] Difficulty select (modal in `Menu.uxml`, wired in `MenuUIController`)

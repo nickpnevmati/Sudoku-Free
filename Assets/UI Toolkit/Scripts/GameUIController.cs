@@ -581,7 +581,7 @@ public class GameUIController : MonoBehaviour
     private void HighlightNumpad()
     {
         for (int i = 0; i < numpad.Length; i++)
-            numpad[i].EnableInClassList("numpad_button_active", m_selectedNumber != null && m_selectedNumber == i + 1);
+            numpad[i].EnableInClassList("numpad_button_active", m_selectedNumber != null && m_selectedNumber == i + 1 && m_fastMode);
     }
 
     private void HighlightModeButtons()
