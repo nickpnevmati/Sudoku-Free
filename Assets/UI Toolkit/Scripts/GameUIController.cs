@@ -357,7 +357,7 @@ public class GameUIController : MonoBehaviour
         else
         {
             if (m_selectedCell == null) return;
-            int selected = (int) m_selectedCell;
+            int selected = (int)m_selectedCell;
             EraseCell(selected);
             SaveGame();
         }
@@ -617,6 +617,11 @@ public class GameUIController : MonoBehaviour
         var box = Box(cell);
         foreach (var idx in colrow.Item1.Concat(colrow.Item2).Concat(box))
             gridCells[idx].ClearNote(number);
+
+        if (!gridCells[cell].number.Equals(""))
+            m_selectedNumber = int.Parse(gridCells[cell].number);
+
+        Refresh();
 
         // Wrong numbers are marked in HighlightCells, so the marking also follows Undo,
         // Continue and the Check Errors setting being toggled

@@ -69,8 +69,8 @@
 ### General
 - [ ] Notes aren't highlighted
 ### Normal Mode
-- [ ] Erase doesn't work - should turn into a button (not toggle) under normal mode
-- [ ] Placing a number doesn't re-trigger highlights
+- [x] Erase doesn't work - should turn into a button (not toggle) under normal mode
+- [x] Placing a number doesn't re-trigger highlights
 - [ ] Numpad is highlighted when number selected
 
 ## Menu
