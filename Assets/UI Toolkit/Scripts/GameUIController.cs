@@ -96,7 +96,7 @@ public class GameUIController : MonoBehaviour
         exitButton.clicked += ExitRequested;
         fastModeButton.clicked += OnFastModeToggled;
         quickNoteButton.clicked += QuickNote;
-        eraseButton.clicked += OnEraseModeToggled;
+        eraseButton.clicked += OnEraseModeClicked;
         noteModeButton.clicked += OnNoteModeToggled;
     }
 
@@ -347,10 +347,20 @@ public class GameUIController : MonoBehaviour
         Refresh();
     }
 
-    private void OnEraseModeToggled()
+    private void OnEraseModeClicked()
     {
-        m_noteMode = false;
-        m_eraseMode = !m_eraseMode;
+        if (m_fastMode)
+        {
+            m_noteMode = false;
+            m_eraseMode = !m_eraseMode;
+        }
+        else
+        {
+            if (m_selectedCell == null) return;
+            int selected = (int) m_selectedCell;
+            EraseCell(selected);
+            SaveGame();
+        }
         Refresh();
     }
 
@@ -578,7 +588,7 @@ public class GameUIController : MonoBehaviour
     {
         fastModeButton.EnableInClassList("game_button_active", m_fastMode);
         noteModeButton.EnableInClassList("game_button_active", m_noteMode);
-        eraseButton.EnableInClassList("game_button_active", m_eraseMode);
+        eraseButton.EnableInClassList("game_button_active", m_eraseMode && m_fastMode);
     }
 
 
